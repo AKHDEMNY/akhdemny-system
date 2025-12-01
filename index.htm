@@ -3,53 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني</title>
+    <title>لوحة تحكم - اخدمني V2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .order-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; border-right: 5px solid #0d6efd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .status-new { border-right-color: #0d6efd; }
-        .status-done { border-right-color: #198754; background-color: #d1e7dd; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .order-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: transform 0.2s; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* حالات الطلب */
+        .status-new { border-right-color: #0d6efd; } /* أزرق: جاري التوصيل */
+        .status-done { border-right-color: #198754; background-color: #f8fffb; opacity: 0.8; } /* أخضر: تم */
+        .status-pending { border-right-color: #ffc107; background-color: #fffbf0; } /* أصفر: في الانتظار (بدون طيار) */
+
+        .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
     </style>
 </head>
 <body>
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4">نظام إدارة طلبات - اخدمني 🛵</h2>
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">🛵 اخدمني - إدارة الطلبات</span>
+        <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> تحميل شيت إكسيل</button>
+    </div>
+</nav>
 
-    <div class="card p-3 mb-4">
-        <h5>📝 إضافة طلب جديد</h5>
-        <div class="row g-2">
-            <div class="col-md-3"><input type="text" id="clientName" class="form-control" placeholder="اسم العميل"></div>
-            <div class="col-md-3"><input type="text" id="clientPhone" class="form-control" placeholder="رقم الموبايل"></div>
-            <div class="col-md-6"><input type="text" id="address" class="form-control" placeholder="العنوان بالتفصيل"></div>
-            <div class="col-md-12"><textarea id="orderDetails" class="form-control" placeholder="تفاصيل الطلب (مثال: 2 شاورما + 1 بيبسي)"></textarea></div>
-            <div class="col-md-4">
-                <select id="driverName" class="form-select">
-                    <option value="" selected>اختر الطيار...</option>
-                    <option value="محمد (طيار)">محمد (طيار)</option>
-                    <option value="أحمد (طيار)">أحمد (طيار)</option>
-                    <option value="علي (طيار)">علي (طيار)</option>
-                </select>
+<div class="container">
+    
+    <div class="row mb-4" id="statsBar">
+        </div>
+
+    <div class="card p-4 mb-4 shadow-sm">
+        <h5 id="formTitle" class="mb-3"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
+        <input type="hidden" id="editOrderId"> <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label text-muted small">اسم المحل (الاستلام)</label>
+                <input type="text" id="storeName" class="form-control" placeholder="مثال: مطعم البرنس">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-muted small">تفاصيل الأوردر</label>
+                <input type="text" id="orderDetails" class="form-control" placeholder="2 كشري + بيبسي...">
             </div>
             <div class="col-md-2">
-                <button onclick="addOrder()" class="btn btn-primary w-100">حفظ الطلب</button>
+                <label class="form-label text-muted small">سعر التوصيل</label>
+                <input type="number" id="deliveryPrice" class="form-control" placeholder="ج.م">
+            </div>
+            <div class="col-md-2">
+                 <label class="form-label text-muted small">رقم موبايل العميل</label>
+                <input type="text" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">عنوان العميل</label>
+                <input type="text" id="address" class="form-control" placeholder="العنوان بالتفصيل...">
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label text-muted small">تعيين طيار (اختياري)</label>
+                <select id="driverSelect" class="form-select">
+                    </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ الطلب</button>
+                <button onclick="cancelEdit()" id="cancelBtn" class="btn btn-secondary w-100 ms-2" style="display:none;">إلغاء</button>
             </div>
         </div>
     </div>
 
-    <h4>📦 الطلبات الحالية</h4>
+    <h4 class="mb-3"><i class="fas fa-list"></i> الطلبات الحالية</h4>
     <div id="ordersList">
-        <p class="text-muted text-center">جاري تحميل الطلبات...</p>
+        <p class="text-center text-muted">جاري الاتصال بالسيرفر...</p>
     </div>
 </div>
 
 <script type="module">
-  // استدعاء المكتبات بالطريقة الصحيحة للمتصفح
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
   import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-  // إعدادات Firebase الخاصة بيك (تم التصحيح)
+  // !!!!!!!!!!!!!! حط بيانات Firebase بتاعتك الحقيقية هنا !!!!!!!!!!!!!!
   const firebaseConfig = {
     apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
     authDomain: "akhdemny-system.firebaseapp.com",
@@ -59,84 +90,266 @@
     messagingSenderId: "831991915916",
     appId: "1:831991915916:web:1267ce815b1a04a6aca2a9"
   };
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  // تهيئة التطبيق
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
   const SITE_URL = window.location.href.replace('index.html', '');
 
-  window.addOrder = function() {
-      const name = document.getElementById('clientName').value;
-      const phone = document.getElementById('clientPhone').value;
-      const address = document.getElementById('address').value;
-      const details = document.getElementById('orderDetails').value;
-      const driver = document.getElementById('driverName').value;
+  // 1. قائمة الطيارين (الاسم والرقم)
+  // أي اسم تضيفه هنا هيظهر في القائمة وتشتغل عليه حالة الانشغال اوتوماتيك
+  const driversDB = [
+      { name: "عمر", phone: "201032772469" },
+      { name: "ابراهيم", phone: "201229061305" },
+      { name: "محمد (تجربة)", phone: "201000000000" } // مثال
+  ];
 
-      if(!name || !driver) { alert("من فضلك اكتب اسم العميل واختار الطيار"); return; }
+  let allOrdersData = {}; // لتخزين الداتا عشان التعديل والاحصائيات
 
-      push(ref(db, 'orders'), {
-          clientName: name,
-          clientPhone: phone,
-          address: address,
-          details: details,
-          driver: driver,
-          status: 'new',
+  // 2. دالة حفظ الطلب (تشتغل للجديد وللتعديل)
+  window.saveOrder = function() {
+      const id = document.getElementById('editOrderId').value; // لو فاضي يبقى جديد، لو فيه قيمة يبقى تعديل
+      
+      const orderData = {
+          storeName: document.getElementById('storeName').value,
+          details: document.getElementById('orderDetails').value,
+          price: document.getElementById('deliveryPrice').value,
+          clientPhone: document.getElementById('clientPhone').value,
+          address: document.getElementById('address').value,
+          driver: document.getElementById('driverSelect').value,
+          // لو اخترنا طيار تبقى الحالة new (جاري التوصيل)، لو لسه تبقى pending
+          status: document.getElementById('driverSelect').value ? 'new' : 'pending',
           timestamp: Date.now()
-      }).then(() => {
-          console.log("تم الإرسال بنجاح");
-      }).catch((error) => {
-          alert("حدث خطأ: " + error.message);
-          console.error(error);
-      });
+      };
 
-      document.getElementById('clientName').value = '';
-      document.getElementById('orderDetails').value = '';
+      // التحقق البسيط
+      if(!orderData.storeName || !orderData.details) {
+          alert("لازم تكتب اسم المحل وتفاصيل الأوردر على الأقل");
+          return;
+      }
+
+      if(id) {
+          // حالة التعديل Update
+          // نحافظ على الحالة القديمة لو هي done
+          if(allOrdersData[id].status === 'done') orderData.status = 'done';
+          else if (orderData.driver) orderData.status = 'new';
+          
+          update(ref(db, 'orders/' + id), orderData);
+          cancelEdit(); // رجوع للوضع العادي
+      } else {
+          // حالة جديد Create
+          push(ref(db, 'orders'), orderData);
+      }
+
+      clearForm();
   }
 
-  const ordersList = document.getElementById('ordersList');
+  // 3. دالة ملء القائمة واكتشاف حالة الطيارين
+  function updateDriverDropdown(activeDriversSet) {
+      const select = document.getElementById('driverSelect');
+      const currentVal = select.value; // عشان نحافظ على الاختيار لو بنعمل ريفريش
+      select.innerHTML = '<option value="">-- اختر طيار (اختياري) --</option>';
+
+      driversDB.forEach(d => {
+          // لو الطيار ده موجود في قائمة المشغولين
+          const isBusy = activeDriversSet.has(d.name);
+          const statusIcon = isBusy ? '🔴' : '🟢';
+          const statusText = isBusy ? '(معه أوردر)' : '(متاح)';
+          
+          const option = document.createElement('option');
+          option.value = d.name;
+          option.text = `${statusIcon} ${d.name} ${statusText}`;
+          select.appendChild(option);
+      });
+      select.value = currentVal;
+  }
+
+  // 4. الاستماع للبيانات وتحديث الشاشة
   onValue(ref(db, 'orders'), (snapshot) => {
-      ordersList.innerHTML = ''; 
+      const list = document.getElementById('ordersList');
+      list.innerHTML = '';
       const data = snapshot.val();
-      
-      if(!data) { ordersList.innerHTML = '<p class="text-center">لا توجد طلبات حالياً</p>'; return; }
+      allOrdersData = data || {};
+
+      if(!data) { list.innerHTML = '<p class="text-center">مفيش طلبات النهاردة لسه..</p>'; return; }
 
       const orders = Object.entries(data).reverse();
+      
+      // حساب المشغولين حالياً (أي حد معاه أوردر حالته new)
+      const busyDrivers = new Set();
+      orders.forEach(([key, o]) => {
+          if(o.status === 'new' && o.driver) busyDrivers.add(o.driver);
+      });
+      updateDriverDropdown(busyDrivers); // تحديث القائمة فوق
+      calculateStats(orders); // تحديث الاحصائيات
 
       orders.forEach(([id, order]) => {
-          const driverLink = `${SITE_URL}driver.html?id=${id}`;
+          // تحديد الألوان والحالة
+          let statusClass = 'status-pending';
+          let statusText = '⚠️ في الانتظار (بدون طيار)';
           
-          const whatsappMsg = `*اوردر جديد يا ${order.driver}* 🛵%0a` +
-                              `👤 العميل: ${order.clientName}%0a` +
-                              `📍 العنوان: ${order.address}%0a` +
-                              `📞 موبايل: ${order.clientPhone}%0a` +
-                              `📝 التفاصيل: ${order.details}%0a` +
-                              `-----------%0a` +
-                              `✅ *لما تسلم الاوردر دوس هنا:*%0a ${driverLink}`;
+          if(order.status === 'new') { statusClass = 'status-new'; statusText = '🛵 جاري التوصيل'; }
+          if(order.status === 'done') { statusClass = 'status-done'; statusText = '✅ تم التسليم'; }
 
-          const statusClass = order.status === 'done' ? 'status-done' : 'status-new';
-          const statusText = order.status === 'done' ? '✅ تم التوصيل' : '⏳ جاري التوصيل';
+          // تجهيز رابط الواتساب (Web Whatsapp)
+          let whatsappBtn = '';
+          // زرار التعيين السريع لو معلق
+          let assignDriverUI = '';
+
+          if(order.driver) {
+              // لو فيه طيار، نجهز زرار الواتساب
+              const driverObj = driversDB.find(d => d.name === order.driver);
+              const driverPhone = driverObj ? driverObj.phone : ''; // لو الاسم مش في القائمة
+              const driverLink = `${SITE_URL}driver.html?id=${id}`;
+              
+              const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a` +
+                          `🏪 *من:* ${order.storeName}%0a` +
+                          `🧾 *الأوردر:* ${order.details}%0a` +
+                          `💵 *التوصيل:* ${order.price} ج.م%0a` +
+                          `📍 *عنوان العميل:* ${order.address}%0a` +
+                          `📞 *موبايل:* ${order.clientPhone}%0a` +
+                          `------------------%0a` +
+                          `✅ *دوس هنا لما تسلم:* ${driverLink}`;
+              
+              if(order.status === 'new') {
+                   // رابط web.whatsapp المباشر
+                   whatsappBtn = `<a href="https://web.whatsapp.com/send?phone=${driverPhone}&text=${msg}" target="_blank" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال للطيار</a>`;
+              }
+          } else {
+              // لو مفيش طيار (Pending)
+              // نظهر زرار "تعديل" بشكل أساسي للتعيين
+               statusText += ` <button class="btn btn-outline-warning btn-sm ms-2" onclick="editOrder('${id}')">تعيين الآن</button>`;
+          }
 
           const html = `
               <div class="order-card ${statusClass}">
-                  <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                          <strong>#${order.clientName}</strong> - <small>${order.address}</small><br>
-                          <span class="text-muted">${order.details}</span><br>
-                          <small class="badge bg-secondary">${order.driver}</small>
+                  <div class="row align-items-center">
+                      <div class="col-md-3 border-end">
+                          <strong class="text-primary">${order.storeName}</strong><br>
+                          <small class="text-muted">السعر: ${order.price || '-'} ج</small>
                       </div>
-                      <div class="text-end">
-                          <h5 class="${order.status === 'done' ? 'text-success' : 'text-primary'}">${statusText}</h5>
-                          ${order.status === 'new' ? 
-                            `<a href="https://wa.me/?text=${whatsappMsg}" target="_blank" class="btn btn-success btn-sm">📩 إرسال للطيار</a>` 
-                            : ''}
+                      <div class="col-md-4 border-end">
+                          <strong>${order.details}</strong><br>
+                          <small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${order.address}</small>
+                      </div>
+                      <div class="col-md-3">
+                          <span class="badge bg-secondary mb-1">${order.driver || 'غير محدد'}</span><br>
+                          <strong class="${order.status==='done'?'text-success':'text-warning'}">${statusText}</strong>
+                      </div>
+                      <div class="col-md-2 text-end">
+                          ${whatsappBtn}
+                          <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1"><i class="fas fa-edit"></i> تعديل</button>
                       </div>
                   </div>
               </div>
           `;
-          ordersList.innerHTML += html;
+          list.innerHTML += html;
       });
   });
+
+  // 5. وظيفة التعديل (Edit)
+  window.editOrder = function(id) {
+      const order = allOrdersData[id];
+      if(!order) return;
+
+      document.getElementById('editOrderId').value = id;
+      document.getElementById('storeName').value = order.storeName || '';
+      document.getElementById('orderDetails').value = order.details || '';
+      document.getElementById('deliveryPrice').value = order.price || '';
+      document.getElementById('clientPhone').value = order.clientPhone || '';
+      document.getElementById('address').value = order.address || '';
+      document.getElementById('driverSelect').value = order.driver || '';
+
+      // تغيير شكل الأزرار
+      document.getElementById('saveBtn').innerText = "تحديث البيانات 🔄";
+      document.getElementById('saveBtn').classList.remove('btn-primary');
+      document.getElementById('saveBtn').classList.add('btn-warning');
+      document.getElementById('cancelBtn').style.display = 'inline-block';
+      document.getElementById('formTitle').innerText = "📝 تعديل الطلب";
+      
+      // نطلع لفوق
+      window.scrollTo(0, 0);
+  }
+
+  // إلغاء التعديل
+  window.cancelEdit = function() {
+      clearForm();
+      document.getElementById('editOrderId').value = '';
+      document.getElementById('saveBtn').innerText = "حفظ الطلب";
+      document.getElementById('saveBtn').classList.add('btn-primary');
+      document.getElementById('saveBtn').classList.remove('btn-warning');
+      document.getElementById('cancelBtn').style.display = 'none';
+      document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> إضافة طلب جديد';
+  }
+
+  function clearForm() {
+      document.getElementById('storeName').value = '';
+      document.getElementById('orderDetails').value = '';
+      document.getElementById('deliveryPrice').value = '';
+      document.getElementById('clientPhone').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('driverSelect').value = '';
+  }
+
+  // 6. الإحصائيات (Analytics)
+  function calculateStats(ordersArr) {
+      const total = ordersArr.length;
+      let done = 0;
+      let driversCount = {};
+
+      ordersArr.forEach(([k, o]) => {
+          if(o.status === 'done') done++;
+          if(o.driver) {
+              driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
+          }
+      });
+
+      let driversHtml = '';
+      for (const [name, count] of Object.entries(driversCount)) {
+          driversHtml += `<div class="col-md-2 mb-2"><div class="stats-card"><small>${name}</small><br><strong>${count}</strong></div></div>`;
+      }
+
+      document.getElementById('statsBar').innerHTML = `
+          <div class="col-md-3 mb-2">
+              <div class="stats-card border-primary">
+                  <div class="text-muted">إجمالي الأوردرات</div>
+                  <div class="stats-number">${total}</div>
+              </div>
+          </div>
+          <div class="col-md-3 mb-2">
+              <div class="stats-card border-success">
+                  <div class="text-muted">تم التسليم</div>
+                  <div class="stats-number text-success">${done}</div>
+              </div>
+          </div>
+          ${driversHtml}
+      `;
+  }
+
+  // 7. تصدير للإكسيل (Export)
+  window.exportToExcel = function() {
+      const rows = [["Store", "Details", "Price", "Address", "Phone", "Driver", "Status", "Date"]];
+      
+      Object.values(allOrdersData).forEach(o => {
+          const date = new Date(o.timestamp).toLocaleString('ar-EG');
+          rows.push([
+              o.storeName, o.details, o.price, o.address, o.clientPhone, o.driver, o.status, date
+          ]);
+      });
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // لدعم العربية
+      rows.forEach(r => {
+          const row = r.map(e => `"${e || ''}"`).join(",");
+          csvContent += row + "\r\n";
+      });
+
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "akhdemny_orders.csv");
+      document.body.appendChild(link);
+      link.click();
+  }
+
 </script>
 
 </body>
