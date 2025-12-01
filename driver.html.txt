@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد التوصيل</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #212529; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .success-box { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loading">جاري التحميل...</div>
+
+    <div id="confirmBox" style="display:none;">
+        <h3>هل سلمت الأوردر للعميل؟</h3>
+        <p class="text-muted">اضغط لتأكيد التسليم وإبلاغ المكتب</p>
+        <button onclick="confirmDelivery()" class="btn btn-success btn-lg w-100 py-3 fw-bold">✅ أيوه، تم التسليم</button>
+    </div>
+
+    <div id="successBox" class="success-box">
+        <h1 style="font-size: 80px;">🎉</h1>
+        <h3>الله ينور عليك!</h3>
+        <p>تم إبلاغ المكتب إنك خلصت.</p>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+  import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+  // !!!!!!!!!!!!!! نفس بياناتك بتاعت الخطوة 1 هنا !!!!!!!!!!!!!!
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
+  authDomain: "akhdemny-system.firebaseapp.com",
+  databaseURL: "https://akhdemny-system-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "akhdemny-system",
+  storageBucket: "akhdemny-system.firebasestorage.app",
+  messagingSenderId: "831991915916",
+  appId: "1:831991915916:web:1267ce815b1a04a6aca2a9"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+  // !!!!!!!!!!!!!! !!!!!!!!!!!!!!
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // نجيب رقم الأوردر من رابط الصفحة
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('id');
+
+  if(orderId) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('confirmBox').style.display = 'block';
+  } else {
+      document.getElementById('loading').innerHTML = "رابط غير صحيح!";
+  }
+
+  window.confirmDelivery = function() {
+      if(!orderId) return;
+      
+      // تحديث الحالة في الداتا بيز
+      update(ref(db, 'orders/' + orderId), {
+          status: 'done',
+          deliveredAt: Date.now()
+      }).then(() => {
+          document.getElementById('confirmBox').style.display = 'none';
+          document.getElementById('successBox').style.display = 'block';
+      }).catch((error) => {
+          alert("حدث خطأ، حاول مرة أخرى");
+          console.error(error);
+      });
+  }
+</script>
+
+</body>
+</html>
