@@ -32,31 +32,20 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
   import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-  // !!!!!!!!!!!!!! نفس بياناتك بتاعت الخطوة 1 هنا !!!!!!!!!!!!!!
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
-  authDomain: "akhdemny-system.firebaseapp.com",
-  databaseURL: "https://akhdemny-system-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "akhdemny-system",
-  storageBucket: "akhdemny-system.firebasestorage.app",
-  messagingSenderId: "831991915916",
-  appId: "1:831991915916:web:1267ce815b1a04a6aca2a9"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-  // !!!!!!!!!!!!!! !!!!!!!!!!!!!!
+  // إعدادات Firebase الخاصة بيك (تم التصحيح)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
+    authDomain: "akhdemny-system.firebaseapp.com",
+    databaseURL: "https://akhdemny-system-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "akhdemny-system",
+    storageBucket: "akhdemny-system.firebasestorage.app",
+    messagingSenderId: "831991915916",
+    appId: "1:831991915916:web:1267ce815b1a04a6aca2a9"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // نجيب رقم الأوردر من رابط الصفحة
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
 
@@ -70,7 +59,6 @@ const app = initializeApp(firebaseConfig);
   window.confirmDelivery = function() {
       if(!orderId) return;
       
-      // تحديث الحالة في الداتا بيز
       update(ref(db, 'orders/' + orderId), {
           status: 'done',
           deliveredAt: Date.now()
@@ -78,7 +66,7 @@ const app = initializeApp(firebaseConfig);
           document.getElementById('confirmBox').style.display = 'none';
           document.getElementById('successBox').style.display = 'block';
       }).catch((error) => {
-          alert("حدث خطأ، حاول مرة أخرى");
+          alert("حدث خطأ: " + error.message);
           console.error(error);
       });
   }
