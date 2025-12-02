@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني V3</title>
+    <title>لوحة تحكم - اخدمني (شفتات)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -15,7 +15,7 @@
         .status-pending { border-right-color: #ffc107; background-color: #fffbf0; }
         .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
-        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; }
+        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -87,20 +87,20 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info small">اكتب الرقم عادي (010...) والسيستم هيضبطه لوحده دولي.</div>
                 <div class="input-group mb-3">
                     <input type="text" id="newDriverName" class="form-control" placeholder="اسم الطيار">
-                    <input type="text" id="newDriverPhone" class="form-control" placeholder="رقم الواتساب (201xxxx)">
+                    <input type="text" id="newDriverPhone" class="form-control" placeholder="رقم الواتساب">
                     <button onclick="addNewDriver()" class="btn btn-primary">إضافة</button>
                 </div>
-                <ul class="list-group" id="driversListModal">
-                    </ul>
+                <ul class="list-group" id="driversListModal"></ul>
             </div>
         </div>
     </div>
 </div>
 
 <div class="shift-badge" id="shiftBadge">
-    <i class="fas fa-clock"></i> <span id="shiftText">جاري تحديد الشفت...</span>
+    <i class="fas fa-clock"></i> <span id="shiftText">...</span>
 </div>
 
 <script type="module">
@@ -123,17 +123,26 @@
 
   let driversList = [];
   let allOrdersData = {};
-  let showAllOrders = false; // فلتر العرض
+  let showAllOrders = false;
 
-  // 1. تحديد الشفت الحالي
+  // دالة سحرية لتصحيح أرقام الموبايل (مصر)
+  function fixEgPhone(num) {
+      if(!num) return "";
+      let n = num.toString().replace(/\D/g, ''); // مسح أي حروف أو مسافات
+      if (n.startsWith('01')) return '20' + n.substring(1); // لو 010 -> 2010
+      if (n.startsWith('1')) return '20' + n; // لو 10 -> 2010
+      return n; // لو 2010 سيبها زي ما هي
+  }
+
+  // 1. تحديد الشفت
   function getCurrentShift() {
       const hour = new Date().getHours();
-      // Shift 1: 9:00 - 17:00 (5 PM)
-      if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص - 5م)" };
-      // Shift 2: 17:00 - 01:00 (1 AM)
-      if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م - 1ص)" };
-      // Shift 3: 01:00 - 09:00
-      return { id: 3, name: "شفت سهرة (1ص - 9ص)" };
+      // Shift 1: 9:00 AM - 5:00 PM (17:00)
+      if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص - 5م) ☀️" };
+      // Shift 2: 5:00 PM - 1:00 AM
+      if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م - 1ص) 🌙" };
+      // Shift 3: 1:00 AM - 9:00 AM
+      return { id: 3, name: "شفت سهرة (1ص - 9ص) 🦉" };
   }
 
   function updateShiftDisplay() {
@@ -141,14 +150,13 @@
       document.getElementById('currentShiftDisplay').innerText = shift.name;
       document.getElementById('shiftText').innerText = shift.name;
   }
-  setInterval(updateShiftDisplay, 60000); // تحديث كل دقيقة
+  setInterval(updateShiftDisplay, 60000);
   updateShiftDisplay();
 
-  // 2. إدارة الطيارين (Firebase)
+  // 2. إدارة الطيارين
   const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
   window.openDriverModal = () => driverModal.show();
 
-  // تحميل الطيارين
   onValue(ref(db, 'drivers'), (snapshot) => {
       const list = document.getElementById('driversListModal');
       const select = document.getElementById('driverSelect');
@@ -161,30 +169,28 @@
           Object.entries(data).forEach(([id, driver]) => {
               driversList.push({id, ...driver});
               
-              // إضافة للقائمة المنسدلة
               const option = document.createElement('option');
-              option.value = driver.name; // بنستخدم الاسم كقيمة للربط القديم
+              option.value = driver.name;
               option.dataset.phone = driver.phone;
               option.text = driver.name;
               select.appendChild(option);
 
-              // إضافة لقائمة الحذف في المودال
               list.innerHTML += `
                   <li class="list-group-item d-flex justify-content-between align-items-center">
-                      ${driver.name} (${driver.phone})
+                      ${driver.name} <span class="badge bg-light text-dark">${driver.phone}</span>
                       <button onclick="deleteDriver('${id}')" class="btn btn-danger btn-sm">حذف</button>
-                  </li>
-              `;
+                  </li>`;
           });
       }
-      // تحديث حالة المشغولين بعد تحميل الطيارين
       refreshOrdersView(); 
   });
 
   window.addNewDriver = function() {
       const name = document.getElementById('newDriverName').value;
-      const phone = document.getElementById('newDriverPhone').value;
+      let phone = document.getElementById('newDriverPhone').value;
+      
       if(name && phone) {
+          phone = fixEgPhone(phone); // تصحيح الرقم قبل الحفظ
           push(ref(db, 'drivers'), { name, phone });
           document.getElementById('newDriverName').value = '';
           document.getElementById('newDriverPhone').value = '';
@@ -192,12 +198,10 @@
   }
 
   window.deleteDriver = function(id) {
-      if(confirm('هل أنت متأكد من حذف الطيار؟')) {
-          remove(ref(db, 'drivers/' + id));
-      }
+      if(confirm('هل أنت متأكد من حذف الطيار؟')) remove(ref(db, 'drivers/' + id));
   }
 
-  // 3. حفظ الأوردر (مع رقم الشفت)
+  // 3. حفظ الأوردر
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
       const driverSelect = document.getElementById('driverSelect');
@@ -212,7 +216,7 @@
           address: document.getElementById('address').value,
           driver: selectedDriverName,
           status: selectedDriverName ? 'new' : 'pending',
-          shiftId: shift.id, // تسجيل رقم الشفت
+          shiftId: shift.id,
           timestamp: Date.now()
       };
 
@@ -229,7 +233,7 @@
       clearForm();
   }
 
-  // 4. عرض الأوردرات (Shift Logic Here)
+  // 4. عرض الأوردرات (مع الفلترة)
   onValue(ref(db, 'orders'), (snapshot) => {
       allOrdersData = snapshot.val() || {};
       refreshOrdersView();
@@ -244,22 +248,15 @@
       const orders = Object.entries(allOrdersData).reverse();
       const currentShiftId = getCurrentShift().id;
       
-      // منطق الفلترة:
-      // بنعرض الأوردر لو: (هو في الشفت الحالي) OR (لسه ماخلصش حتى لو من شفت قديم) OR (زرار عرض الكل شغال)
       const filteredOrders = orders.filter(([id, o]) => {
-          // حساب تاريخ اليوم
           const orderDate = new Date(o.timestamp).toDateString();
           const today = new Date().toDateString();
           
-          if (showAllOrders && orderDate === today) return true; // عرض كل بتوع النهاردة
-          
-          if (o.status !== 'done') return true; // أي حاجة مش خالصة تظهر عشان ماننساش حاجة
-          
-          // لو خالص، لازم يكون تبع الشفت الحالي والنهارده
+          if (showAllOrders && orderDate === today) return true;
+          if (o.status !== 'done') return true; 
           return (o.shiftId === currentShiftId && orderDate === today);
       });
 
-      // تحديث حالة الطيارين (مشغول/متاح)
       updateDriverStatus(filteredOrders);
       calculateStats(filteredOrders);
 
@@ -267,12 +264,11 @@
           let statusClass = order.status === 'new' ? 'status-new' : (order.status === 'done' ? 'status-done' : 'status-pending');
           let statusText = order.status === 'new' ? '🛵 جاري التوصيل' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
           
-          // جلب رقم الطيار من القائمة الديناميكية
           const driverObj = driversList.find(d => d.name === order.driver);
-          const driverPhone = driverObj ? driverObj.phone : '';
+          // هنا بنستخدم دالة fixEgPhone مرة كمان للأمان
+          const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
-          // !!!!!!! حل الواتساب الجذري !!!!!!!
-          // استخدام whatsapp:// يفتح التطبيق مباشرة
+          // رابط الواتساب (ديسكتوب)
           const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price} ج%0a📍 *العنوان:* ${order.address}%0a📞 *العميل:* ${order.clientPhone}%0a✅ *رابط التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
@@ -295,14 +291,12 @@
       });
   }
 
-  // تحديث حالة الطيارين في القائمة
   function updateDriverStatus(currentOrders) {
       const select = document.getElementById('driverSelect');
       const busyDrivers = new Set();
       currentOrders.forEach(([id, o]) => {
           if(o.status === 'new' && o.driver) busyDrivers.add(o.driver);
       });
-
       Array.from(select.options).forEach(option => {
           if(option.value) {
               const isBusy = busyDrivers.has(option.value);
@@ -319,7 +313,6 @@
       refreshOrdersView();
   }
 
-  // الدوال المساعدة (Edit, Cancel, Clear, Stats, Export) زي ما هي...
   window.editOrder = function(id) {
       const order = allOrdersData[id];
       if(!order) return;
@@ -371,7 +364,6 @@
   }
   
   window.exportToExcel = function() {
-      // نفس كود الاكسبورت القديم
       const rows = [["Store", "Details", "Price", "Address", "Phone", "Driver", "Status", "Date"]];
       Object.values(allOrdersData).forEach(o => {
           const date = new Date(o.timestamp).toLocaleString('ar-EG');
@@ -386,8 +378,6 @@
       link.click();
   }
 
-  // تفعيل المودال (Bootstrap Logic)
-  // تم تضمين Bootstrap JS تلقائياً عبر CDN ولكن لتشغيل المودال نحتاج
   import "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js";
 </script>
 </body>
