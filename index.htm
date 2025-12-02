@@ -3,29 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني (شفتات)</title>
+    <title>لوحة تحكم - اخدمني V5</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .order-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: transform 0.2s; }
         .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        /* ألوان الحالات */
         .status-new { border-right-color: #0d6efd; }
         .status-done { border-right-color: #198754; background-color: #f8fffb; opacity: 0.8; }
         .status-pending { border-right-color: #ffc107; background-color: #fffbf0; }
+        
+        /* بادج النوع */
+        .type-badge { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+        .type-normal { background-color: #6c757d; color: white; }
+        .type-store { background-color: #fd7e14; color: white; }
+        .type-online { background-color: #6610f2; color: white; }
+
         .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
         .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
+        
+        /* تنسيق الحقول الاختيارية */
+        .optional-field { background-color: #f8f9fa; border-color: #dee2e6; }
+        .optional-label::after { content: " (اختياري)"; font-size: 0.8em; color: #adb5bd; }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark bg-dark mb-4">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">🛵 اخدمني - <span id="currentShiftDisplay" class="text-warning" style="font-size: 0.8em;">...</span></span>
+        <span class="navbar-brand mb-0 h1">🛵 اخدمني - <span id="currentShiftDisplay" class="text-warning small">...</span></span>
         <div>
-            <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> إدارة الطيارين</button>
-            <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> شيت إكسيل</button>
+            <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> الطيارين</button>
+            <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> إكسيل</button>
         </div>
     </div>
 </nav>
@@ -34,37 +47,53 @@
     <div class="row mb-4" id="statsBar"></div>
 
     <div class="card p-4 mb-4 shadow-sm">
-        <h5 id="formTitle" class="mb-3"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 id="formTitle" class="m-0"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
+        </div>
+        
         <input type="hidden" id="editOrderId">
+        
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="text-muted small">اسم المحل</label>
-                <input type="text" id="storeName" class="form-control" placeholder="مطعم...">
+            <div class="col-md-12">
+                <label class="fw-bold small">نوع الأوردر</label>
+                <select id="orderType" class="form-select bg-light border-primary" onchange="toggleRequiredFields()">
+                    <option value="normal">👤 أوردر طياري (عادي)</option>
+                    <option value="store">🏪 محل / مطعم</option>
+                    <option value="online">💻 أونلاين / سيلر</option>
+                </select>
             </div>
-            <div class="col-md-5">
+
+            <div class="col-md-4">
+                <label class="text-muted small">اسم المحل / العميل</label>
+                <input type="text" id="storeName" class="form-control" placeholder="اكتب الاسم...">
+            </div>
+            
+            <div class="col-md-8">
                 <label class="text-muted small">تفاصيل الأوردر</label>
-                <input type="text" id="orderDetails" class="form-control" placeholder="تفاصيل...">
+                <input type="text" id="orderDetails" class="form-control" placeholder="اكتب الطلبات...">
             </div>
+
             <div class="col-md-2">
-                <label class="text-muted small">السعر</label>
+                <label class="text-muted small" id="lblPrice">سعر التوصيل</label>
                 <input type="number" id="deliveryPrice" class="form-control" placeholder="ج.م">
             </div>
-            <div class="col-md-2">
-                 <label class="text-muted small">موبايل العميل</label>
+            <div class="col-md-4">
+                 <label class="text-muted small" id="lblPhone">موبايل الزبون</label>
                 <input type="text" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
             </div>
             <div class="col-md-6">
-                <label class="text-muted small">العنوان</label>
-                <input type="text" id="address" class="form-control" placeholder="العنوان...">
+                <label class="text-muted small" id="lblAddress">عنوان التوصيل</label>
+                <input type="text" id="address" class="form-control" placeholder="العنوان بالتفصيل...">
             </div>
-            <div class="col-md-4">
-                <label class="text-muted small">الطيار</label>
+            
+            <div class="col-md-8">
+                <label class="text-muted small">تعيين طيار</label>
                 <select id="driverSelect" class="form-select">
-                    <option value="">جاري تحميل الطيارين...</option>
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ</button>
+            <div class="col-md-4 d-flex align-items-end">
+                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ الطلب</button>
                 <button onclick="cancelEdit()" id="cancelBtn" class="btn btn-secondary w-100 ms-2" style="display:none;">إلغاء</button>
             </div>
         </div>
@@ -72,7 +101,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4><i class="fas fa-list"></i> طلبات الشفت الحالي</h4>
-        <button class="btn btn-outline-secondary btn-sm" onclick="toggleViewAll()" id="viewToggleBtn">عرض كل طلبات اليوم</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleViewAll()" id="viewToggleBtn">عرض اليوم كله</button>
     </div>
     <div id="ordersList">
         <p class="text-center text-muted">جاري التحميل...</p>
@@ -87,10 +116,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info small">اكتب الرقم عادي (010...) والسيستم هيضبطه لوحده دولي.</div>
+                <div class="alert alert-info small">اكتب الرقم عادي (010...) والسيستم هيضبطه لوحده.</div>
                 <div class="input-group mb-3">
-                    <input type="text" id="newDriverName" class="form-control" placeholder="اسم الطيار">
-                    <input type="text" id="newDriverPhone" class="form-control" placeholder="رقم الواتساب">
+                    <input type="text" id="newDriverName" class="form-control" placeholder="الاسم">
+                    <input type="text" id="newDriverPhone" class="form-control" placeholder="الموبايل">
                     <button onclick="addNewDriver()" class="btn btn-primary">إضافة</button>
                 </div>
                 <ul class="list-group" id="driversListModal"></ul>
@@ -125,26 +154,22 @@
   let allOrdersData = {};
   let showAllOrders = false;
 
-  // دالة سحرية لتصحيح أرقام الموبايل (مصر)
+  // دوال مساعدة
   function fixEgPhone(num) {
       if(!num) return "";
-      let n = num.toString().replace(/\D/g, ''); // مسح أي حروف أو مسافات
-      if (n.startsWith('01')) return '20' + n.substring(1); // لو 010 -> 2010
-      if (n.startsWith('1')) return '20' + n; // لو 10 -> 2010
-      return n; // لو 2010 سيبها زي ما هي
+      let n = num.toString().replace(/\D/g, '');
+      if (n.startsWith('01')) return '20' + n.substring(1);
+      if (n.startsWith('1')) return '20' + n;
+      return n;
   }
 
-  // 1. تحديد الشفت
   function getCurrentShift() {
       const hour = new Date().getHours();
-      // Shift 1: 9:00 AM - 5:00 PM (17:00)
       if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص - 5م) ☀️" };
-      // Shift 2: 5:00 PM - 1:00 AM
       if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م - 1ص) 🌙" };
-      // Shift 3: 1:00 AM - 9:00 AM
       return { id: 3, name: "شفت سهرة (1ص - 9ص) 🦉" };
   }
-
+  
   function updateShiftDisplay() {
       const shift = getCurrentShift();
       document.getElementById('currentShiftDisplay').innerText = shift.name;
@@ -153,7 +178,35 @@
   setInterval(updateShiftDisplay, 60000);
   updateShiftDisplay();
 
-  // 2. إدارة الطيارين
+  // ================= التحكم في الحقول (الميزة الجديدة) =================
+  window.toggleRequiredFields = function() {
+      const type = document.getElementById('orderType').value;
+      const isOptional = (type === 'store' || type === 'online');
+      
+      const fields = ['deliveryPrice', 'clientPhone', 'address'];
+      const labels = ['lblPrice', 'lblPhone', 'lblAddress'];
+
+      fields.forEach((fid, index) => {
+          const el = document.getElementById(fid);
+          const lbl = document.getElementById(labels[index]);
+          
+          if (isOptional) {
+              el.classList.add('optional-field');
+              lbl.classList.add('optional-label');
+              el.placeholder = "اختياري...";
+          } else {
+              el.classList.remove('optional-field');
+              lbl.classList.remove('optional-label');
+              if(fid === 'deliveryPrice') el.placeholder = "ج.م";
+              if(fid === 'clientPhone') el.placeholder = "01xxxxxxxxx";
+              if(fid === 'address') el.placeholder = "العنوان بالتفصيل...";
+          }
+      });
+  }
+  // تشغيل الدالة عند البدء
+  window.onload = toggleRequiredFields;
+
+  // ================= إدارة الطيارين =================
   const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
   window.openDriverModal = () => driverModal.show();
 
@@ -168,59 +221,67 @@
       if(data) {
           Object.entries(data).forEach(([id, driver]) => {
               driversList.push({id, ...driver});
-              
               const option = document.createElement('option');
               option.value = driver.name;
               option.dataset.phone = driver.phone;
               option.text = driver.name;
               select.appendChild(option);
-
-              list.innerHTML += `
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                      ${driver.name} <span class="badge bg-light text-dark">${driver.phone}</span>
-                      <button onclick="deleteDriver('${id}')" class="btn btn-danger btn-sm">حذف</button>
-                  </li>`;
+              list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${driver.name}<button onclick="deleteDriver('${id}')" class="btn btn-danger btn-sm">حذف</button></li>`;
           });
       }
-      refreshOrdersView(); 
+      refreshOrdersView();
   });
 
   window.addNewDriver = function() {
       const name = document.getElementById('newDriverName').value;
       let phone = document.getElementById('newDriverPhone').value;
-      
       if(name && phone) {
-          phone = fixEgPhone(phone); // تصحيح الرقم قبل الحفظ
-          push(ref(db, 'drivers'), { name, phone });
+          push(ref(db, 'drivers'), { name, phone: fixEgPhone(phone) });
           document.getElementById('newDriverName').value = '';
           document.getElementById('newDriverPhone').value = '';
       }
   }
+  window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  window.deleteDriver = function(id) {
-      if(confirm('هل أنت متأكد من حذف الطيار؟')) remove(ref(db, 'drivers/' + id));
-  }
-
-  // 3. حفظ الأوردر
+  // ================= حفظ الطلب (باللوجيك الجديد) =================
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
-      const driverSelect = document.getElementById('driverSelect');
-      const selectedDriverName = driverSelect.value;
+      const type = document.getElementById('orderType').value;
       const shift = getCurrentShift();
+      
+      const storeName = document.getElementById('storeName').value;
+      const details = document.getElementById('orderDetails').value;
+      const price = document.getElementById('deliveryPrice').value;
+      const phone = document.getElementById('clientPhone').value;
+      const address = document.getElementById('address').value;
+      const driver = document.getElementById('driverSelect').value;
+
+      // 1. التحقق الذكي (Validation Logic)
+      if (!storeName || !details) {
+          alert("لازم تكتب اسم المحل وتفاصيل الأوردر في أي حالة!");
+          return;
+      }
+
+      // لو الأوردر "عادي" لازم البيانات كاملة
+      if (type === 'normal') {
+          if (!price || !phone || !address) {
+              alert("في الأوردر العادي (الطياري) لازم تكتب السعر والعنوان والموبايل!");
+              return;
+          }
+      }
 
       const orderData = {
-          storeName: document.getElementById('storeName').value,
-          details: document.getElementById('orderDetails').value,
-          price: document.getElementById('deliveryPrice').value,
-          clientPhone: document.getElementById('clientPhone').value,
-          address: document.getElementById('address').value,
-          driver: selectedDriverName,
-          status: selectedDriverName ? 'new' : 'pending',
+          type: type, // نوع الأوردر
+          storeName: storeName,
+          details: details,
+          price: price || 0, // لو فاضي حط صفر
+          clientPhone: phone || 'غير مسجل',
+          address: address || 'استلام محل/اونلاين',
+          driver: driver,
+          status: driver ? 'new' : 'pending',
           shiftId: shift.id,
           timestamp: Date.now()
       };
-
-      if(!orderData.storeName || !orderData.details) { alert("أكمل البيانات"); return; }
 
       if(id) {
           if(allOrdersData[id].status === 'done') orderData.status = 'done';
@@ -230,10 +291,17 @@
       } else {
           push(ref(db, 'orders'), orderData);
       }
-      clearForm();
+      
+      // تفريغ الحقول مع الحفاظ على نوع الأوردر
+      document.getElementById('storeName').value = '';
+      document.getElementById('orderDetails').value = '';
+      document.getElementById('deliveryPrice').value = '';
+      document.getElementById('clientPhone').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('driverSelect').value = '';
   }
 
-  // 4. عرض الأوردرات (مع الفلترة)
+  // ================= عرض الأوردرات =================
   onValue(ref(db, 'orders'), (snapshot) => {
       allOrdersData = snapshot.val() || {};
       refreshOrdersView();
@@ -242,7 +310,6 @@
   function refreshOrdersView() {
       const list = document.getElementById('ordersList');
       list.innerHTML = '';
-      
       if(!allOrdersData) { list.innerHTML = '<p class="text-center">مفيش طلبات</p>'; return; }
 
       const orders = Object.entries(allOrdersData).reverse();
@@ -251,7 +318,6 @@
       const filteredOrders = orders.filter(([id, o]) => {
           const orderDate = new Date(o.timestamp).toDateString();
           const today = new Date().toDateString();
-          
           if (showAllOrders && orderDate === today) return true;
           if (o.status !== 'done') return true; 
           return (o.shiftId === currentShiftId && orderDate === today);
@@ -262,14 +328,18 @@
 
       filteredOrders.forEach(([id, order]) => {
           let statusClass = order.status === 'new' ? 'status-new' : (order.status === 'done' ? 'status-done' : 'status-pending');
-          let statusText = order.status === 'new' ? '🛵 جاري التوصيل' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
+          let statusText = order.status === 'new' ? '🛵 جاري' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
           
+          // تحديد بادج النوع
+          let typeBadge = '';
+          if(order.type === 'store') typeBadge = '<span class="type-badge type-store">محل</span>';
+          else if(order.type === 'online') typeBadge = '<span class="type-badge type-online">أونلاين</span>';
+          else typeBadge = '<span class="type-badge type-normal">عادي</span>';
+
           const driverObj = driversList.find(d => d.name === order.driver);
-          // هنا بنستخدم دالة fixEgPhone مرة كمان للأمان
           const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
-          // رابط الواتساب (ديسكتوب)
-          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price} ج%0a📍 *العنوان:* ${order.address}%0a📞 *العميل:* ${order.clientPhone}%0a✅ *رابط التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *${order.storeName}* ${order.type=='normal'?'':('('+order.type+')')}%0a🧾 *${order.details}*%0a💵 *${order.price} ج*%0a📍 *${order.address}*%0a📞 *${order.clientPhone}*%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
@@ -281,9 +351,18 @@
           const html = `
               <div class="order-card ${statusClass}">
                   <div class="row align-items-center">
-                      <div class="col-md-3 border-end"><strong>${order.storeName}</strong><br><small>${order.price||0} ج</small></div>
-                      <div class="col-md-4 border-end"><strong>${order.details}</strong><br><small>${order.address}</small></div>
-                      <div class="col-md-3"><span class="badge bg-secondary">${order.driver||'-'}</span><br><strong>${statusText}</strong></div>
+                      <div class="col-md-3 border-end">
+                          <strong class="text-primary">${order.storeName}</strong> ${typeBadge}<br>
+                          <small class="text-muted">${order.price||0} ج</small>
+                      </div>
+                      <div class="col-md-4 border-end">
+                          <strong>${order.details}</strong><br>
+                          <small class="text-muted">${order.address}</small>
+                      </div>
+                      <div class="col-md-3">
+                          <span class="badge bg-secondary">${order.driver||'-'}</span><br>
+                          <strong>${statusText}</strong>
+                      </div>
                       <div class="col-md-2 text-end">${whatsappBtn} <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1">تعديل</button></div>
                   </div>
               </div>`;
@@ -305,11 +384,9 @@
       });
   }
 
-  window.toggleViewAll = function() {
+  window.toggleViewAll = () => {
       showAllOrders = !showAllOrders;
-      document.getElementById('viewToggleBtn').innerText = showAllOrders ? "عرض الشفت الحالي فقط" : "عرض كل طلبات اليوم";
-      document.getElementById('viewToggleBtn').classList.toggle('btn-outline-secondary');
-      document.getElementById('viewToggleBtn').classList.toggle('btn-primary');
+      document.getElementById('viewToggleBtn').innerText = showAllOrders ? "الشفت الحالي" : "عرض اليوم كله";
       refreshOrdersView();
   }
 
@@ -317,6 +394,10 @@
       const order = allOrdersData[id];
       if(!order) return;
       document.getElementById('editOrderId').value = id;
+      // ضبط نوع الأوردر عشان الحقول تتلون صح
+      document.getElementById('orderType').value = order.type || 'normal'; 
+      toggleRequiredFields(); // تحديث الألوان
+
       document.getElementById('storeName').value = order.storeName;
       document.getElementById('orderDetails').value = order.details;
       document.getElementById('deliveryPrice').value = order.price;
@@ -333,6 +414,8 @@
       document.getElementById('editOrderId').value = '';
       document.getElementById('saveBtn').innerText = "حفظ";
       document.getElementById('cancelBtn').style.display = 'none';
+      document.getElementById('orderType').value = 'normal'; // رجع للوضع الافتراضي
+      toggleRequiredFields();
   }
 
   function clearForm() {
@@ -347,27 +430,17 @@
   function calculateStats(ordersArr) {
       const total = ordersArr.length;
       let done = 0;
-      let driversCount = {};
-      ordersArr.forEach(([k, o]) => {
-          if(o.status === 'done') done++;
-          if(o.driver) driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
-      });
-      let driversHtml = '';
-      for (const [name, count] of Object.entries(driversCount)) {
-          driversHtml += `<div class="col-md-2 mb-2"><div class="stats-card"><small>${name}</small><br><strong>${count}</strong></div></div>`;
-      }
+      ordersArr.forEach(o => { if(o.status === 'done') done++; });
       document.getElementById('statsBar').innerHTML = `
-          <div class="col-md-3 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
-          <div class="col-md-3 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>
-          ${driversHtml}
-      `;
+          <div class="col-md-6 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
+          <div class="col-md-6 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>`;
   }
   
   window.exportToExcel = function() {
-      const rows = [["Store", "Details", "Price", "Address", "Phone", "Driver", "Status", "Date"]];
+      const rows = [["Type", "Store", "Details", "Price", "Address", "Phone", "Driver", "Status", "Date"]];
       Object.values(allOrdersData).forEach(o => {
           const date = new Date(o.timestamp).toLocaleString('ar-EG');
-          rows.push([o.storeName, o.details, o.price, o.address, o.clientPhone, o.driver, o.status, date]);
+          rows.push([o.type, o.storeName, o.details, o.price, o.address, o.clientPhone, o.driver, o.status, date]);
       });
       let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
       rows.forEach(r => { csvContent += r.map(e => `"${e || ''}"`).join(",") + "\r\n"; });
