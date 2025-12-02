@@ -213,7 +213,7 @@
               
               if(order.status === 'new') {
                    // رابط web.whatsapp المباشر
-                   whatsappBtn = `<a href="https://web.whatsapp.com/send?phone=${driverPhone}&text=${msg}" target="_blank" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال للطيار</a>`;
+                   whatsappBtn = `<a href="https://web.whatsapp.com/send?phone=${driverPhone}&text=${msg}" target="whatsapp_window" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال للطيار</a>`;
               }
           } else {
               // لو مفيش طيار (Pending)
@@ -354,3 +354,4 @@
 
 </body>
 </html>
+
