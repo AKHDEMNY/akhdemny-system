@@ -3,84 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني V2</title>
+    <title>لوحة تحكم - اخدمني V3</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .order-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: transform 0.2s; }
         .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        
-        /* حالات الطلب */
-        .status-new { border-right-color: #0d6efd; } /* أزرق: جاري التوصيل */
-        .status-done { border-right-color: #198754; background-color: #f8fffb; opacity: 0.8; } /* أخضر: تم */
-        .status-pending { border-right-color: #ffc107; background-color: #fffbf0; } /* أصفر: في الانتظار (بدون طيار) */
-
+        .status-new { border-right-color: #0d6efd; }
+        .status-done { border-right-color: #198754; background-color: #f8fffb; opacity: 0.8; }
+        .status-pending { border-right-color: #ffc107; background-color: #fffbf0; }
         .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark bg-dark mb-4">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">🛵 اخدمني - إدارة الطلبات</span>
-        <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> تحميل شيت إكسيل</button>
+        <span class="navbar-brand mb-0 h1">🛵 اخدمني - <span id="currentShiftDisplay" class="text-warning" style="font-size: 0.8em;">...</span></span>
+        <div>
+            <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> إدارة الطيارين</button>
+            <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> شيت إكسيل</button>
+        </div>
     </div>
 </nav>
 
 <div class="container">
-    
-    <div class="row mb-4" id="statsBar">
-        </div>
+    <div class="row mb-4" id="statsBar"></div>
 
     <div class="card p-4 mb-4 shadow-sm">
         <h5 id="formTitle" class="mb-3"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
-        <input type="hidden" id="editOrderId"> <div class="row g-3">
+        <input type="hidden" id="editOrderId">
+        <div class="row g-3">
             <div class="col-md-3">
-                <label class="form-label text-muted small">اسم المحل (الاستلام)</label>
-                <input type="text" id="storeName" class="form-control" placeholder="مثال: مطعم البرنس">
+                <label class="text-muted small">اسم المحل</label>
+                <input type="text" id="storeName" class="form-control" placeholder="مطعم...">
             </div>
             <div class="col-md-5">
-                <label class="form-label text-muted small">تفاصيل الأوردر</label>
-                <input type="text" id="orderDetails" class="form-control" placeholder="2 كشري + بيبسي...">
+                <label class="text-muted small">تفاصيل الأوردر</label>
+                <input type="text" id="orderDetails" class="form-control" placeholder="تفاصيل...">
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small">سعر التوصيل</label>
+                <label class="text-muted small">السعر</label>
                 <input type="number" id="deliveryPrice" class="form-control" placeholder="ج.م">
             </div>
             <div class="col-md-2">
-                 <label class="form-label text-muted small">رقم موبايل العميل</label>
+                 <label class="text-muted small">موبايل العميل</label>
                 <input type="text" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
             </div>
             <div class="col-md-6">
-                <label class="form-label text-muted small">عنوان العميل</label>
-                <input type="text" id="address" class="form-control" placeholder="العنوان بالتفصيل...">
+                <label class="text-muted small">العنوان</label>
+                <input type="text" id="address" class="form-control" placeholder="العنوان...">
             </div>
-            
             <div class="col-md-4">
-                <label class="form-label text-muted small">تعيين طيار (اختياري)</label>
+                <label class="text-muted small">الطيار</label>
                 <select id="driverSelect" class="form-select">
-                    </select>
+                    <option value="">جاري تحميل الطيارين...</option>
+                </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ الطلب</button>
+                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ</button>
                 <button onclick="cancelEdit()" id="cancelBtn" class="btn btn-secondary w-100 ms-2" style="display:none;">إلغاء</button>
             </div>
         </div>
     </div>
 
-    <h4 class="mb-3"><i class="fas fa-list"></i> الطلبات الحالية</h4>
-    <div id="ordersList">
-        <p class="text-center text-muted">جاري الاتصال بالسيرفر...</p>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="fas fa-list"></i> طلبات الشفت الحالي</h4>
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleViewAll()" id="viewToggleBtn">عرض كل طلبات اليوم</button>
     </div>
+    <div id="ordersList">
+        <p class="text-center text-muted">جاري التحميل...</p>
+    </div>
+</div>
+
+<div class="modal fade" id="driverModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إدارة الطيارين</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="newDriverName" class="form-control" placeholder="اسم الطيار">
+                    <input type="text" id="newDriverPhone" class="form-control" placeholder="رقم الواتساب (201xxxx)">
+                    <button onclick="addNewDriver()" class="btn btn-primary">إضافة</button>
+                </div>
+                <ul class="list-group" id="driversListModal">
+                    </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="shift-badge" id="shiftBadge">
+    <i class="fas fa-clock"></i> <span id="shiftText">جاري تحديد الشفت...</span>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+  import { getDatabase, ref, push, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-  // !!!!!!!!!!!!!! حط بيانات Firebase بتاعتك الحقيقية هنا !!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!! بياناتك !!!!!!!!!!!!!!
   const firebaseConfig = {
     apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
     authDomain: "akhdemny-system.firebaseapp.com",
@@ -90,196 +117,229 @@
     messagingSenderId: "831991915916",
     appId: "1:831991915916:web:1267ce815b1a04a6aca2a9"
   };
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const SITE_URL = window.location.href.replace('index.html', '');
 
-  // 1. قائمة الطيارين (الاسم والرقم)
-  // أي اسم تضيفه هنا هيظهر في القائمة وتشتغل عليه حالة الانشغال اوتوماتيك
-  const driversDB = [
-      { name: "عمر", phone: "201032772469" },
-      { name: "ابراهيم", phone: "201229061305" },
-      { name: "محمد (تجربة)", phone: "201000000000" } // مثال
-  ];
+  let driversList = [];
+  let allOrdersData = {};
+  let showAllOrders = false; // فلتر العرض
 
-  let allOrdersData = {}; // لتخزين الداتا عشان التعديل والاحصائيات
+  // 1. تحديد الشفت الحالي
+  function getCurrentShift() {
+      const hour = new Date().getHours();
+      // Shift 1: 9:00 - 17:00 (5 PM)
+      if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص - 5م)" };
+      // Shift 2: 17:00 - 01:00 (1 AM)
+      if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م - 1ص)" };
+      // Shift 3: 01:00 - 09:00
+      return { id: 3, name: "شفت سهرة (1ص - 9ص)" };
+  }
 
-  // 2. دالة حفظ الطلب (تشتغل للجديد وللتعديل)
+  function updateShiftDisplay() {
+      const shift = getCurrentShift();
+      document.getElementById('currentShiftDisplay').innerText = shift.name;
+      document.getElementById('shiftText').innerText = shift.name;
+  }
+  setInterval(updateShiftDisplay, 60000); // تحديث كل دقيقة
+  updateShiftDisplay();
+
+  // 2. إدارة الطيارين (Firebase)
+  const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
+  window.openDriverModal = () => driverModal.show();
+
+  // تحميل الطيارين
+  onValue(ref(db, 'drivers'), (snapshot) => {
+      const list = document.getElementById('driversListModal');
+      const select = document.getElementById('driverSelect');
+      list.innerHTML = '';
+      select.innerHTML = '<option value="">-- اختر طيار --</option>';
+      driversList = [];
+
+      const data = snapshot.val();
+      if(data) {
+          Object.entries(data).forEach(([id, driver]) => {
+              driversList.push({id, ...driver});
+              
+              // إضافة للقائمة المنسدلة
+              const option = document.createElement('option');
+              option.value = driver.name; // بنستخدم الاسم كقيمة للربط القديم
+              option.dataset.phone = driver.phone;
+              option.text = driver.name;
+              select.appendChild(option);
+
+              // إضافة لقائمة الحذف في المودال
+              list.innerHTML += `
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                      ${driver.name} (${driver.phone})
+                      <button onclick="deleteDriver('${id}')" class="btn btn-danger btn-sm">حذف</button>
+                  </li>
+              `;
+          });
+      }
+      // تحديث حالة المشغولين بعد تحميل الطيارين
+      refreshOrdersView(); 
+  });
+
+  window.addNewDriver = function() {
+      const name = document.getElementById('newDriverName').value;
+      const phone = document.getElementById('newDriverPhone').value;
+      if(name && phone) {
+          push(ref(db, 'drivers'), { name, phone });
+          document.getElementById('newDriverName').value = '';
+          document.getElementById('newDriverPhone').value = '';
+      }
+  }
+
+  window.deleteDriver = function(id) {
+      if(confirm('هل أنت متأكد من حذف الطيار؟')) {
+          remove(ref(db, 'drivers/' + id));
+      }
+  }
+
+  // 3. حفظ الأوردر (مع رقم الشفت)
   window.saveOrder = function() {
-      const id = document.getElementById('editOrderId').value; // لو فاضي يبقى جديد، لو فيه قيمة يبقى تعديل
-      
+      const id = document.getElementById('editOrderId').value;
+      const driverSelect = document.getElementById('driverSelect');
+      const selectedDriverName = driverSelect.value;
+      const shift = getCurrentShift();
+
       const orderData = {
           storeName: document.getElementById('storeName').value,
           details: document.getElementById('orderDetails').value,
           price: document.getElementById('deliveryPrice').value,
           clientPhone: document.getElementById('clientPhone').value,
           address: document.getElementById('address').value,
-          driver: document.getElementById('driverSelect').value,
-          // لو اخترنا طيار تبقى الحالة new (جاري التوصيل)، لو لسه تبقى pending
-          status: document.getElementById('driverSelect').value ? 'new' : 'pending',
+          driver: selectedDriverName,
+          status: selectedDriverName ? 'new' : 'pending',
+          shiftId: shift.id, // تسجيل رقم الشفت
           timestamp: Date.now()
       };
 
-      // التحقق البسيط
-      if(!orderData.storeName || !orderData.details) {
-          alert("لازم تكتب اسم المحل وتفاصيل الأوردر على الأقل");
-          return;
-      }
+      if(!orderData.storeName || !orderData.details) { alert("أكمل البيانات"); return; }
 
       if(id) {
-          // حالة التعديل Update
-          // نحافظ على الحالة القديمة لو هي done
           if(allOrdersData[id].status === 'done') orderData.status = 'done';
           else if (orderData.driver) orderData.status = 'new';
-          
           update(ref(db, 'orders/' + id), orderData);
-          cancelEdit(); // رجوع للوضع العادي
+          cancelEdit();
       } else {
-          // حالة جديد Create
           push(ref(db, 'orders'), orderData);
       }
-
       clearForm();
   }
 
-  // 3. دالة ملء القائمة واكتشاف حالة الطيارين
-  function updateDriverDropdown(activeDriversSet) {
-      const select = document.getElementById('driverSelect');
-      const currentVal = select.value; // عشان نحافظ على الاختيار لو بنعمل ريفريش
-      select.innerHTML = '<option value="">-- اختر طيار (اختياري) --</option>';
-
-      driversDB.forEach(d => {
-          // لو الطيار ده موجود في قائمة المشغولين
-          const isBusy = activeDriversSet.has(d.name);
-          const statusIcon = isBusy ? '🔴' : '🟢';
-          const statusText = isBusy ? '(معه أوردر)' : '(متاح)';
-          
-          const option = document.createElement('option');
-          option.value = d.name;
-          option.text = `${statusIcon} ${d.name} ${statusText}`;
-          select.appendChild(option);
-      });
-      select.value = currentVal;
-  }
-
-  // 4. الاستماع للبيانات وتحديث الشاشة
+  // 4. عرض الأوردرات (Shift Logic Here)
   onValue(ref(db, 'orders'), (snapshot) => {
+      allOrdersData = snapshot.val() || {};
+      refreshOrdersView();
+  });
+
+  function refreshOrdersView() {
       const list = document.getElementById('ordersList');
       list.innerHTML = '';
-      const data = snapshot.val();
-      allOrdersData = data || {};
-
-      if(!data) { list.innerHTML = '<p class="text-center">مفيش طلبات النهاردة لسه..</p>'; return; }
-
-      const orders = Object.entries(data).reverse();
       
-      // حساب المشغولين حالياً (أي حد معاه أوردر حالته new)
-      const busyDrivers = new Set();
-      orders.forEach(([key, o]) => {
-          if(o.status === 'new' && o.driver) busyDrivers.add(o.driver);
-      });
-      updateDriverDropdown(busyDrivers); // تحديث القائمة فوق
-      calculateStats(orders); // تحديث الاحصائيات
+      if(!allOrdersData) { list.innerHTML = '<p class="text-center">مفيش طلبات</p>'; return; }
 
-      orders.forEach(([id, order]) => {
-          // تحديد الألوان والحالة
-          let statusClass = 'status-pending';
-          let statusText = '⚠️ في الانتظار (بدون طيار)';
+      const orders = Object.entries(allOrdersData).reverse();
+      const currentShiftId = getCurrentShift().id;
+      
+      // منطق الفلترة:
+      // بنعرض الأوردر لو: (هو في الشفت الحالي) OR (لسه ماخلصش حتى لو من شفت قديم) OR (زرار عرض الكل شغال)
+      const filteredOrders = orders.filter(([id, o]) => {
+          // حساب تاريخ اليوم
+          const orderDate = new Date(o.timestamp).toDateString();
+          const today = new Date().toDateString();
           
-          if(order.status === 'new') { statusClass = 'status-new'; statusText = '🛵 جاري التوصيل'; }
-          if(order.status === 'done') { statusClass = 'status-done'; statusText = '✅ تم التسليم'; }
+          if (showAllOrders && orderDate === today) return true; // عرض كل بتوع النهاردة
+          
+          if (o.status !== 'done') return true; // أي حاجة مش خالصة تظهر عشان ماننساش حاجة
+          
+          // لو خالص، لازم يكون تبع الشفت الحالي والنهارده
+          return (o.shiftId === currentShiftId && orderDate === today);
+      });
 
-          // تجهيز رابط الواتساب (Web Whatsapp)
+      // تحديث حالة الطيارين (مشغول/متاح)
+      updateDriverStatus(filteredOrders);
+      calculateStats(filteredOrders);
+
+      filteredOrders.forEach(([id, order]) => {
+          let statusClass = order.status === 'new' ? 'status-new' : (order.status === 'done' ? 'status-done' : 'status-pending');
+          let statusText = order.status === 'new' ? '🛵 جاري التوصيل' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
+          
+          // جلب رقم الطيار من القائمة الديناميكية
+          const driverObj = driversList.find(d => d.name === order.driver);
+          const driverPhone = driverObj ? driverObj.phone : '';
+          
+          // !!!!!!! حل الواتساب الجذري !!!!!!!
+          // استخدام whatsapp:// يفتح التطبيق مباشرة
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price} ج%0a📍 *العنوان:* ${order.address}%0a📞 *العميل:* ${order.clientPhone}%0a✅ *رابط التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          
           let whatsappBtn = '';
-          // زرار التعيين السريع لو معلق
-          let assignDriverUI = '';
-
-          if(order.driver) {
-              // لو فيه طيار، نجهز زرار الواتساب
-              const driverObj = driversDB.find(d => d.name === order.driver);
-              const driverPhone = driverObj ? driverObj.phone : ''; // لو الاسم مش في القائمة
-              const driverLink = `${SITE_URL}driver.html?id=${id}`;
-              
-              const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a` +
-                          `🏪 *من:* ${order.storeName}%0a` +
-                          `🧾 *الأوردر:* ${order.details}%0a` +
-                          `💵 *التوصيل:* ${order.price} ج.م%0a` +
-                          `📍 *عنوان العميل:* ${order.address}%0a` +
-                          `📞 *موبايل:* ${order.clientPhone}%0a` +
-                          `------------------%0a` +
-                          `✅ *دوس هنا لما تسلم:* ${driverLink}`;
-              
-              if(order.status === 'new') {
-                   // رابط web.whatsapp المباشر
-                   whatsappBtn = `<a href="https://web.whatsapp.com/send?phone=${driverPhone}&text=${msg}" target="whatsapp_window" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال للطيار</a>`;
-              }
-          } else {
-              // لو مفيش طيار (Pending)
-              // نظهر زرار "تعديل" بشكل أساسي للتعيين
-               statusText += ` <button class="btn btn-outline-warning btn-sm ms-2" onclick="editOrder('${id}')">تعيين الآن</button>`;
+          if(order.driver && order.status === 'new') {
+              whatsappBtn = `<a href="whatsapp://send?phone=${driverPhone}&text=${msg}" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال</a>`;
+          } else if (!order.driver) {
+              statusText += ` <button class="btn btn-outline-warning btn-sm ms-2" onclick="editOrder('${id}')">تعيين</button>`;
           }
 
           const html = `
               <div class="order-card ${statusClass}">
                   <div class="row align-items-center">
-                      <div class="col-md-3 border-end">
-                          <strong class="text-primary">${order.storeName}</strong><br>
-                          <small class="text-muted">السعر: ${order.price || '-'} ج</small>
-                      </div>
-                      <div class="col-md-4 border-end">
-                          <strong>${order.details}</strong><br>
-                          <small class="text-muted"><i class="fas fa-map-marker-alt"></i> ${order.address}</small>
-                      </div>
-                      <div class="col-md-3">
-                          <span class="badge bg-secondary mb-1">${order.driver || 'غير محدد'}</span><br>
-                          <strong class="${order.status==='done'?'text-success':'text-warning'}">${statusText}</strong>
-                      </div>
-                      <div class="col-md-2 text-end">
-                          ${whatsappBtn}
-                          <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1"><i class="fas fa-edit"></i> تعديل</button>
-                      </div>
+                      <div class="col-md-3 border-end"><strong>${order.storeName}</strong><br><small>${order.price||0} ج</small></div>
+                      <div class="col-md-4 border-end"><strong>${order.details}</strong><br><small>${order.address}</small></div>
+                      <div class="col-md-3"><span class="badge bg-secondary">${order.driver||'-'}</span><br><strong>${statusText}</strong></div>
+                      <div class="col-md-2 text-end">${whatsappBtn} <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1">تعديل</button></div>
                   </div>
-              </div>
-          `;
+              </div>`;
           list.innerHTML += html;
       });
-  });
+  }
 
-  // 5. وظيفة التعديل (Edit)
+  // تحديث حالة الطيارين في القائمة
+  function updateDriverStatus(currentOrders) {
+      const select = document.getElementById('driverSelect');
+      const busyDrivers = new Set();
+      currentOrders.forEach(([id, o]) => {
+          if(o.status === 'new' && o.driver) busyDrivers.add(o.driver);
+      });
+
+      Array.from(select.options).forEach(option => {
+          if(option.value) {
+              const isBusy = busyDrivers.has(option.value);
+              option.text = (isBusy ? '🔴 ' : '🟢 ') + option.value + (isBusy ? ' (مشغول)' : ' (متاح)');
+          }
+      });
+  }
+
+  window.toggleViewAll = function() {
+      showAllOrders = !showAllOrders;
+      document.getElementById('viewToggleBtn').innerText = showAllOrders ? "عرض الشفت الحالي فقط" : "عرض كل طلبات اليوم";
+      document.getElementById('viewToggleBtn').classList.toggle('btn-outline-secondary');
+      document.getElementById('viewToggleBtn').classList.toggle('btn-primary');
+      refreshOrdersView();
+  }
+
+  // الدوال المساعدة (Edit, Cancel, Clear, Stats, Export) زي ما هي...
   window.editOrder = function(id) {
       const order = allOrdersData[id];
       if(!order) return;
-
       document.getElementById('editOrderId').value = id;
-      document.getElementById('storeName').value = order.storeName || '';
-      document.getElementById('orderDetails').value = order.details || '';
-      document.getElementById('deliveryPrice').value = order.price || '';
-      document.getElementById('clientPhone').value = order.clientPhone || '';
-      document.getElementById('address').value = order.address || '';
+      document.getElementById('storeName').value = order.storeName;
+      document.getElementById('orderDetails').value = order.details;
+      document.getElementById('deliveryPrice').value = order.price;
+      document.getElementById('clientPhone').value = order.clientPhone;
+      document.getElementById('address').value = order.address;
       document.getElementById('driverSelect').value = order.driver || '';
-
-      // تغيير شكل الأزرار
-      document.getElementById('saveBtn').innerText = "تحديث البيانات 🔄";
-      document.getElementById('saveBtn').classList.remove('btn-primary');
-      document.getElementById('saveBtn').classList.add('btn-warning');
+      document.getElementById('saveBtn').innerText = "تحديث";
       document.getElementById('cancelBtn').style.display = 'inline-block';
-      document.getElementById('formTitle').innerText = "📝 تعديل الطلب";
-      
-      // نطلع لفوق
       window.scrollTo(0, 0);
   }
 
-  // إلغاء التعديل
   window.cancelEdit = function() {
       clearForm();
       document.getElementById('editOrderId').value = '';
-      document.getElementById('saveBtn').innerText = "حفظ الطلب";
-      document.getElementById('saveBtn').classList.add('btn-primary');
-      document.getElementById('saveBtn').classList.remove('btn-warning');
+      document.getElementById('saveBtn').innerText = "حفظ";
       document.getElementById('cancelBtn').style.display = 'none';
-      document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> إضافة طلب جديد';
   }
 
   function clearForm() {
@@ -291,58 +351,34 @@
       document.getElementById('driverSelect').value = '';
   }
 
-  // 6. الإحصائيات (Analytics)
   function calculateStats(ordersArr) {
       const total = ordersArr.length;
       let done = 0;
       let driversCount = {};
-
       ordersArr.forEach(([k, o]) => {
           if(o.status === 'done') done++;
-          if(o.driver) {
-              driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
-          }
+          if(o.driver) driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
       });
-
       let driversHtml = '';
       for (const [name, count] of Object.entries(driversCount)) {
           driversHtml += `<div class="col-md-2 mb-2"><div class="stats-card"><small>${name}</small><br><strong>${count}</strong></div></div>`;
       }
-
       document.getElementById('statsBar').innerHTML = `
-          <div class="col-md-3 mb-2">
-              <div class="stats-card border-primary">
-                  <div class="text-muted">إجمالي الأوردرات</div>
-                  <div class="stats-number">${total}</div>
-              </div>
-          </div>
-          <div class="col-md-3 mb-2">
-              <div class="stats-card border-success">
-                  <div class="text-muted">تم التسليم</div>
-                  <div class="stats-number text-success">${done}</div>
-              </div>
-          </div>
+          <div class="col-md-3 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
+          <div class="col-md-3 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>
           ${driversHtml}
       `;
   }
-
-  // 7. تصدير للإكسيل (Export)
+  
   window.exportToExcel = function() {
+      // نفس كود الاكسبورت القديم
       const rows = [["Store", "Details", "Price", "Address", "Phone", "Driver", "Status", "Date"]];
-      
       Object.values(allOrdersData).forEach(o => {
           const date = new Date(o.timestamp).toLocaleString('ar-EG');
-          rows.push([
-              o.storeName, o.details, o.price, o.address, o.clientPhone, o.driver, o.status, date
-          ]);
+          rows.push([o.storeName, o.details, o.price, o.address, o.clientPhone, o.driver, o.status, date]);
       });
-
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // لدعم العربية
-      rows.forEach(r => {
-          const row = r.map(e => `"${e || ''}"`).join(",");
-          csvContent += row + "\r\n";
-      });
-
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      rows.forEach(r => { csvContent += r.map(e => `"${e || ''}"`).join(",") + "\r\n"; });
       const link = document.createElement("a");
       link.setAttribute("href", encodeURI(csvContent));
       link.setAttribute("download", "akhdemny_orders.csv");
@@ -350,8 +386,9 @@
       link.click();
   }
 
+  // تفعيل المودال (Bootstrap Logic)
+  // تم تضمين Bootstrap JS تلقائياً عبر CDN ولكن لتشغيل المودال نحتاج
+  import "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js";
 </script>
-
 </body>
 </html>
-
