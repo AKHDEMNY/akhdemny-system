@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني V6</title>
+    <title>لوحة تحكم - اخدمني V6.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -19,7 +19,7 @@
         .optional-input { background-color: #f9f9f9; }
         
         /* تنسيق جدول العهدة */
-        .handover-row { font-size: 0.9em; }
+        .handover-row { font-size: 0.85em; }
         .diff-pos { color: green; font-weight: bold; }
         .diff-neg { color: red; font-weight: bold; }
         .diff-zero { color: #aaa; }
@@ -65,15 +65,15 @@
             </div>
             
             <div class="col-md-2">
-                <label class="text-muted small">السعر</label>
+                <label class="text-muted small" id="lblPrice">السعر</label>
                 <input type="number" id="deliveryPrice" class="form-control" placeholder="ج.م">
             </div>
             <div class="col-md-2">
-                 <label class="text-muted small">موبايل العميل</label>
+                 <label class="text-muted small" id="lblPhone">موبايل العميل</label>
                 <input type="text" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
             </div>
             <div class="col-md-6">
-                <label class="text-muted small">العنوان</label>
+                <label class="text-muted small" id="lblAddress">العنوان</label>
                 <input type="text" id="address" class="form-control" placeholder="العنوان...">
             </div>
             
@@ -129,46 +129,51 @@
             <div class="modal-body">
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <div class="card p-3 border-secondary">
-                            <h6 class="text-muted">💵 نقدية الدرج (الكاش)</h6>
+                        <div class="card p-3 border-secondary h-100">
+                            <h6 class="text-muted fw-bold">💵 نقدية الدرج (الكاش)</h6>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>العهدة الثابتة:</span>
                                 <strong>1000 ج.م</strong>
                             </div>
                             <label class="small">الموجود فعلياً في الدرج:</label>
-                            <input type="number" id="cashFound" class="form-control form-control-lg border-success" placeholder="عديت كام؟">
+                            <input type="number" id="cashFound" class="form-control form-control-lg border-success mb-2" placeholder="عديت كام؟">
+                            <input type="text" id="cashNote" class="form-control form-control-sm bg-light" placeholder="سبب العجز/الزيادة في الدرج...">
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card p-3 border-secondary">
-                            <h6 class="text-muted">📱 المحفظة (فودافون كاش)</h6>
+                        <div class="card p-3 border-secondary h-100">
+                            <h6 class="text-muted fw-bold">📱 المحفظة (فودافون كاش)</h6>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>الرصيد الثابت:</span>
                                 <strong>1000 ج.م</strong>
                             </div>
                             <label class="small">الرصيد الحالي في المحفظة:</label>
-                            <input type="number" id="walletFound" class="form-control form-control-lg border-success" placeholder="الرصيد كام؟">
+                            <input type="number" id="walletFound" class="form-control form-control-lg border-success mb-2" placeholder="الرصيد كام؟">
+                            <input type="text" id="walletNote" class="form-control form-control-sm bg-light" placeholder="سبب العجز/الزيادة في المحفظة...">
                         </div>
                     </div>
-                    <div class="col-12">
-                        <textarea id="handoverNote" class="form-control" placeholder="ملاحظات (مثال: خصم 50ج بنزين - زيادة 20ج فاتورة قديمة...)"></textarea>
+                    
+                    <div class="col-12 mt-3">
+                        <label class="text-muted fw-bold small">📝 ملاحظات عامة ومصاريف (بنزين، صيانة، إلخ):</label>
+                        <textarea id="generalHandoverNote" class="form-control border-dark" rows="2" placeholder="اكتب هنا أي مصاريف خرجت من الدرج (مثال: 50ج بنزين لمحمد)..."></textarea>
                     </div>
-                    <div class="col-12">
-                        <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم 💾</button>
+
+                    <div class="col-12 mt-2">
+                        <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم واقفال الشفت 💾</button>
                     </div>
                 </div>
 
                 <hr>
                 <h6 class="text-muted">سجل التسليمات السابقة:</h6>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered text-center">
+                    <table class="table table-sm table-bordered text-center align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>الشفت</th>
-                                <th>التاريخ</th>
-                                <th>الدرج (فرق)</th>
-                                <th>المحفظة (فرق)</th>
-                                <th>ملاحظات</th>
+                                <th style="width: 15%">الشفت</th>
+                                <th style="width: 15%">التاريخ</th>
+                                <th style="width: 20%">الدرج (ملاحظة)</th>
+                                <th style="width: 20%">المحفظة (ملاحظة)</th>
+                                <th style="width: 30%">ملاحظات عامة</th>
                             </tr>
                         </thead>
                         <tbody id="handoverHistoryList"></tbody>
@@ -236,7 +241,7 @@
       const inputs = ['deliveryPrice', 'clientPhone', 'address'];
       const isOptional = (type === 'store' || type === 'online');
 
-      inputs.forEach(id => {
+      inputs.forEach((id) => {
           const el = document.getElementById(id);
           if(isOptional) {
               el.placeholder = "(اختياري)";
@@ -287,14 +292,19 @@
   }
   window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  // --- إدارة العهدة (الجديد) ---
+  // --- إدارة العهدة (الكود المحدث) ---
   const handoverModal = new bootstrap.Modal(document.getElementById('handoverModal'));
   window.openHandoverModal = () => handoverModal.show();
 
   window.saveHandover = function() {
       const cash = document.getElementById('cashFound').value;
       const wallet = document.getElementById('walletFound').value;
-      const note = document.getElementById('handoverNote').value;
+      
+      // التلات ملاحظات
+      const cashNote = document.getElementById('cashNote').value;
+      const walletNote = document.getElementById('walletNote').value;
+      const generalNote = document.getElementById('generalHandoverNote').value;
+      
       const shift = getCurrentShift();
 
       if(!cash || !wallet) { alert("من فضلك اكتب الموجود في الدرج والمحفظة"); return; }
@@ -303,41 +313,52 @@
           shiftName: shift.name,
           cashFound: cash,
           walletFound: wallet,
-          note: note,
+          cashNote: cashNote,       // ملاحظة الدرج
+          walletNote: walletNote,   // ملاحظة المحفظة
+          generalNote: generalNote, // الملاحظات العامة (البنزين)
           timestamp: Date.now()
       });
 
+      // تفريغ الحقول
       document.getElementById('cashFound').value = '';
       document.getElementById('walletFound').value = '';
-      document.getElementById('handoverNote').value = '';
+      document.getElementById('cashNote').value = '';
+      document.getElementById('walletNote').value = '';
+      document.getElementById('generalHandoverNote').value = '';
+      
       alert("تم تسجيل تسليم العهدة بنجاح ✅");
   }
 
-  // عرض سجل العهدة
+  // عرض سجل العهدة (بالشكل الجديد الكامل)
   onValue(ref(db, 'handovers'), (snapshot) => {
       const list = document.getElementById('handoverHistoryList');
       list.innerHTML = '';
       const data = snapshot.val();
       if(data) {
-          const records = Object.values(data).reverse().slice(0, 10); // آخر 10 تسليمات
+          const records = Object.values(data).reverse().slice(0, 10);
           records.forEach(rec => {
               const date = new Date(rec.timestamp).toLocaleString('ar-EG', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'});
               
-              // حساب الفرق
               const cashDiff = rec.cashFound - FIXED_CASH;
               const walletDiff = rec.walletFound - FIXED_WALLET;
               
-              // تنسيق الفرق (عجز ولا زيادة)
               const cashClass = cashDiff > 0 ? 'diff-pos' : (cashDiff < 0 ? 'diff-neg' : 'diff-zero');
               const walletClass = walletDiff > 0 ? 'diff-pos' : (walletDiff < 0 ? 'diff-neg' : 'diff-zero');
 
+              // عرض البيانات مع الملاحظات الفرعية
+              const cashDisplay = `<strong>${rec.cashFound}</strong> <span class="${cashClass}">(${cashDiff>0?'+':''}${cashDiff})</span>` + 
+                                  (rec.cashNote ? `<br><small class="text-danger" style="font-size:0.7em">• ${rec.cashNote}</small>` : '');
+                                  
+              const walletDisplay = `<strong>${rec.walletFound}</strong> <span class="${walletClass}">(${walletDiff>0?'+':''}${walletDiff})</span>` + 
+                                    (rec.walletNote ? `<br><small class="text-danger" style="font-size:0.7em">• ${rec.walletNote}</small>` : '');
+
               const html = `
-                  <tr class="handover-row">
+                  <tr class="handover-row align-middle">
                       <td>${rec.shiftName}</td>
                       <td>${date}</td>
-                      <td>${rec.cashFound} <span class="${cashClass}">(${cashDiff > 0 ? '+' : ''}${cashDiff})</span></td>
-                      <td>${rec.walletFound} <span class="${walletClass}">(${walletDiff > 0 ? '+' : ''}${walletDiff})</span></td>
-                      <td class="text-start small">${rec.note || '-'}</td>
+                      <td>${cashDisplay}</td>
+                      <td>${walletDisplay}</td>
+                      <td class="text-start small text-muted">${rec.generalNote || '-'}</td>
                   </tr>`;
               list.innerHTML += html;
           });
@@ -346,7 +367,7 @@
       }
   });
 
-  // --- الأوردرات ---
+  // --- الأوردرات (زي ما هي) ---
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
       const orderType = document.getElementById('orderType').value;
