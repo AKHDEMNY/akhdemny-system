@@ -3,38 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني V6.3</title>
+    <title>لوحة تحكم - اخدمني</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .order-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: transform 0.2s; }
-        .order-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .status-new { border-right-color: #0d6efd; }
-        .status-done { border-right-color: #198754; background-color: #f8fffb; opacity: 0.8; }
-        .status-pending { border-right-color: #ffc107; background-color: #fffbf0; }
-        .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
-        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
-        .optional-input { background-color: #f9f9f9; }
+        /* تطبيق خط كايرو على كل الموقع */
+        body { 
+            background-color: #f4f6f8; 
+            font-family: 'Cairo', sans-serif; 
+        }
+
+        /* ألوان البراند */
+        .bg-brand-blue { background-color: #0d47a1 !important; } /* أزرق غامق */
+        .btn-brand-orange { background-color: #ff6f00; color: white; border: none; }
+        .btn-brand-orange:hover { background-color: #e65100; color: white; }
+        .text-brand-orange { color: #ff6f00; }
+
+        /* كروت الأوردرات */
+        .order-card { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            border-right: 6px solid #ccc; 
+            transition: all 0.3s ease; 
+        }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         
-        /* تنسيق جدول العهدة */
+        .status-new { border-right-color: #0d47a1; } /* أزرق */
+        .status-done { border-right-color: #2e7d32; background-color: #f1f8e9; opacity: 0.9; } /* أخضر */
+        .status-pending { border-right-color: #ff6f00; background-color: #fff3e0; } /* برتقالي */
+
+        /* كروت الإحصائيات */
+        .stats-card { background: #fff; border-radius: 10px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%; border: 1px solid #eee; }
+        .stats-number { font-size: 20px; font-weight: bold; color: #0d47a1; }
+        .driver-stat-box { border-top: 3px solid #ff6f00; }
+
+        /* شارة الشفت */
+        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #0d47a1; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
+        
+        .optional-input { background-color: #fafafa; border-color: #eee; }
+        
+        /* تنسيق الجداول */
         .handover-row { font-size: 0.85em; }
         .diff-pos { color: green; font-weight: bold; }
         .diff-neg { color: red; font-weight: bold; }
         .diff-zero { color: #aaa; }
-        
-        /* تنسيق الملاحظات عشان تظهر السطور تحت بعض */
         .note-text { white-space: pre-wrap; display: block; margin-top: 5px; color: #555; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-dark mb-4">
+<nav class="navbar navbar-dark bg-brand-blue mb-4 shadow-sm">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">🛵 اخدمني - <span id="currentShiftDisplay" class="text-warning" style="font-size: 0.8em;">...</span></span>
+        <span class="navbar-brand mb-0 h1 fw-bold"><i class="fas fa-motorcycle"></i> اخدمني - <span id="currentShiftDisplay" class="text-warning small">...</span></span>
         <div>
-            <button onclick="openHandoverModal()" class="btn btn-warning btn-sm fw-bold me-2"><i class="fas fa-coins"></i> تسليم العهدة</button>
+            <button onclick="openHandoverModal()" class="btn btn-warning btn-sm fw-bold me-2"><i class="fas fa-coins"></i> العهدة</button>
             <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> الطيارين</button>
             <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> إكسيل</button>
         </div>
@@ -42,10 +72,10 @@
 </nav>
 
 <div class="container">
-    <div class="row mb-4" id="statsBar"></div>
+    <div class="row g-2 mb-4" id="statsBar"></div>
 
-    <div class="card p-4 mb-4 shadow-sm">
-        <h5 id="formTitle" class="mb-3"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
+    <div class="card p-4 mb-4 shadow-sm border-0">
+        <h5 id="formTitle" class="mb-3 text-brand-orange fw-bold"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
         <input type="hidden" id="editOrderId">
         <div class="row g-3">
             
@@ -83,22 +113,22 @@
             <div class="col-md-4">
                 <label class="text-muted small">الطيار</label>
                 <select id="driverSelect" class="form-select">
-                    <option value="">جاري تحميل الطيارين...</option>
+                    <option value="">جاري التحميل...</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button onclick="saveOrder()" id="saveBtn" class="btn btn-primary w-100 fw-bold">حفظ</button>
+                <button onclick="saveOrder()" id="saveBtn" class="btn btn-brand-orange w-100 fw-bold">حفظ</button>
                 <button onclick="cancelEdit()" id="cancelBtn" class="btn btn-secondary w-100 ms-2" style="display:none;">إلغاء</button>
             </div>
         </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4><i class="fas fa-list"></i> طلبات الشفت الحالي</h4>
+        <h4 class="fw-bold text-dark"><i class="fas fa-list text-brand-orange"></i> طلبات الشفت الحالي</h4>
         <button class="btn btn-outline-secondary btn-sm" onclick="toggleViewAll()" id="viewToggleBtn">عرض كل طلبات اليوم</button>
     </div>
     <div id="ordersList">
-        <p class="text-center text-muted">جاري التحميل...</p>
+        <p class="text-center text-muted py-5">جاري تحميل البيانات...</p>
     </div>
 </div>
 
@@ -126,7 +156,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark">💰 تقفيل الشفت وتسليم العهدة</h5>
+                <h5 class="modal-title text-dark fw-bold">💰 تقفيل الشفت وتسليم العهدة</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -134,55 +164,34 @@
                     <div class="col-md-6">
                         <div class="card p-3 border-secondary h-100">
                             <h6 class="text-muted fw-bold">💵 نقدية الدرج (الكاش)</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>العهدة الثابتة:</span>
-                                <strong>1000 ج.م</strong>
-                            </div>
-                            <label class="small">الموجود فعلياً في الدرج:</label>
+                            <div class="d-flex justify-content-between mb-2"><span>العهدة الثابتة:</span><strong>1000 ج.م</strong></div>
                             <input type="number" id="cashFound" class="form-control form-control-lg border-success mb-2" placeholder="عديت كام؟">
-                            
                             <label class="small text-muted">ملاحظات الدرج:</label>
-                            <textarea id="cashNote" class="form-control bg-light" rows="3" placeholder="اكتب هنا.. ودوس انتر لسطر جديد"></textarea>
+                            <textarea id="cashNote" class="form-control bg-light" rows="2" placeholder="اكتب هنا.."></textarea>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card p-3 border-secondary h-100">
                             <h6 class="text-muted fw-bold">📱 المحفظة (فودافون كاش)</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>الرصيد الثابت:</span>
-                                <strong>1000 ج.م</strong>
-                            </div>
-                            <label class="small">الرصيد الحالي في المحفظة:</label>
+                            <div class="d-flex justify-content-between mb-2"><span>الرصيد الثابت:</span><strong>1000 ج.م</strong></div>
                             <input type="number" id="walletFound" class="form-control form-control-lg border-success mb-2" placeholder="الرصيد كام؟">
-                            
                             <label class="small text-muted">ملاحظات المحفظة:</label>
-                            <textarea id="walletNote" class="form-control bg-light" rows="3" placeholder="اكتب هنا.. ودوس انتر لسطر جديد"></textarea>
+                            <textarea id="walletNote" class="form-control bg-light" rows="2" placeholder="اكتب هنا.."></textarea>
                         </div>
                     </div>
-                    
                     <div class="col-12 mt-3">
                         <label class="text-muted fw-bold small">📝 ملاحظات عامة ومصاريف (بنزين، صيانة، إلخ):</label>
                         <textarea id="generalHandoverNote" class="form-control border-dark" rows="2" placeholder="مصاريف عامة للشيفت..."></textarea>
                     </div>
-
                     <div class="col-12 mt-2">
                         <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم واقفال الشفت 💾</button>
                     </div>
                 </div>
-
                 <hr>
                 <h6 class="text-muted">سجل التسليمات السابقة:</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered text-center align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 15%">الشفت</th>
-                                <th style="width: 15%">التاريخ</th>
-                                <th style="width: 20%">الدرج (ملاحظة)</th>
-                                <th style="width: 20%">المحفظة (ملاحظة)</th>
-                                <th style="width: 30%">ملاحظات عامة</th>
-                            </tr>
-                        </thead>
+                        <thead class="table-light"><tr><th>الشفت</th><th>التاريخ</th><th>الدرج</th><th>المحفظة</th><th>ملاحظات</th></tr></thead>
                         <tbody id="handoverHistoryList"></tbody>
                     </table>
                 </div>
@@ -219,7 +228,7 @@
   const FIXED_CASH = 1000;
   const FIXED_WALLET = 1000;
 
-  // --- دوال المساعدة ---
+  // --- Helpers ---
   function fixEgPhone(num) {
       if(!num) return "";
       let n = num.toString().replace(/\D/g, ''); 
@@ -247,22 +256,19 @@
       const type = document.getElementById('orderType').value;
       const inputs = ['deliveryPrice', 'clientPhone', 'address'];
       const isOptional = (type === 'store' || type === 'online');
-
       inputs.forEach((id) => {
           const el = document.getElementById(id);
-          if(isOptional) {
-              el.placeholder = "(اختياري)";
-              el.classList.add('optional-input');
-          } else {
-              if(id === 'deliveryPrice') el.placeholder = "ج.م";
-              if(id === 'clientPhone') el.placeholder = "01xxxxxxxxx";
-              if(id === 'address') el.placeholder = "العنوان...";
-              el.classList.remove('optional-input');
+          if(isOptional) { el.placeholder = "(اختياري)"; el.classList.add('optional-input'); } 
+          else { 
+              if(id==='deliveryPrice') el.placeholder="ج.م"; 
+              if(id==='clientPhone') el.placeholder="01xxxxxxxxx"; 
+              if(id==='address') el.placeholder="العنوان..."; 
+              el.classList.remove('optional-input'); 
           }
       });
   }
 
-  // --- إدارة الطيارين ---
+  // --- Drivers ---
   const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
   window.openDriverModal = () => driverModal.show();
 
@@ -272,15 +278,12 @@
       list.innerHTML = '';
       select.innerHTML = '<option value="">-- اختر طيار --</option>';
       driversList = [];
-
       const data = snapshot.val();
       if(data) {
           Object.entries(data).forEach(([id, driver]) => {
               driversList.push({id, ...driver});
               const option = document.createElement('option');
-              option.value = driver.name;
-              option.dataset.phone = driver.phone;
-              option.text = driver.name;
+              option.value = driver.name; option.dataset.phone = driver.phone; option.text = driver.name;
               select.appendChild(option);
               list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${driver.name} <span class="badge bg-light text-dark">${driver.phone}</span><button onclick="deleteDriver('${id}')" class="btn btn-danger btn-sm">حذف</button></li>`;
           });
@@ -293,48 +296,37 @@
       let phone = document.getElementById('newDriverPhone').value;
       if(name && phone) {
           push(ref(db, 'drivers'), { name, phone: fixEgPhone(phone) });
-          document.getElementById('newDriverName').value = '';
-          document.getElementById('newDriverPhone').value = '';
+          document.getElementById('newDriverName').value = ''; document.getElementById('newDriverPhone').value = '';
       }
   }
   window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  // --- إدارة العهدة (المعدلة) ---
+  // --- Handover ---
   const handoverModal = new bootstrap.Modal(document.getElementById('handoverModal'));
   window.openHandoverModal = () => handoverModal.show();
 
   window.saveHandover = function() {
       const cash = document.getElementById('cashFound').value;
       const wallet = document.getElementById('walletFound').value;
-      
       const cashNote = document.getElementById('cashNote').value;
       const walletNote = document.getElementById('walletNote').value;
       const generalNote = document.getElementById('generalHandoverNote').value;
-      
       const shift = getCurrentShift();
 
       if(!cash || !wallet) { alert("من فضلك اكتب الموجود في الدرج والمحفظة"); return; }
 
       push(ref(db, 'handovers'), {
-          shiftName: shift.name,
-          cashFound: cash,
-          walletFound: wallet,
-          cashNote: cashNote,
-          walletNote: walletNote,
-          generalNote: generalNote,
+          shiftName: shift.name, cashFound: cash, walletFound: wallet,
+          cashNote: cashNote, walletNote: walletNote, generalNote: generalNote,
           timestamp: Date.now()
       });
 
-      document.getElementById('cashFound').value = '';
-      document.getElementById('walletFound').value = '';
-      document.getElementById('cashNote').value = '';
-      document.getElementById('walletNote').value = '';
+      document.getElementById('cashFound').value = ''; document.getElementById('walletFound').value = '';
+      document.getElementById('cashNote').value = ''; document.getElementById('walletNote').value = '';
       document.getElementById('generalHandoverNote').value = '';
-      
       alert("تم تسجيل تسليم العهدة بنجاح ✅");
   }
 
-  // عرض سجل العهدة
   onValue(ref(db, 'handovers'), (snapshot) => {
       const list = document.getElementById('handoverHistoryList');
       list.innerHTML = '';
@@ -343,66 +335,39 @@
           const records = Object.values(data).reverse().slice(0, 10);
           records.forEach(rec => {
               const date = new Date(rec.timestamp).toLocaleString('ar-EG', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'});
-              
               const cashDiff = rec.cashFound - FIXED_CASH;
               const walletDiff = rec.walletFound - FIXED_WALLET;
-              
               const cashClass = cashDiff > 0 ? 'diff-pos' : (cashDiff < 0 ? 'diff-neg' : 'diff-zero');
               const walletClass = walletDiff > 0 ? 'diff-pos' : (walletDiff < 0 ? 'diff-neg' : 'diff-zero');
 
-              // استخدام note-text عشان السطور تظهر
-              const cashDisplay = `<strong>${rec.cashFound}</strong> <span class="${cashClass}">(${cashDiff>0?'+':''}${cashDiff})</span>` + 
-                                  (rec.cashNote ? `<br><small class="note-text text-danger">• ${rec.cashNote}</small>` : '');
-                                  
-              const walletDisplay = `<strong>${rec.walletFound}</strong> <span class="${walletClass}">(${walletDiff>0?'+':''}${walletDiff})</span>` + 
-                                    (rec.walletNote ? `<br><small class="note-text text-danger">• ${rec.walletNote}</small>` : '');
+              const cashDisplay = `<strong>${rec.cashFound}</strong> <span class="${cashClass}">(${cashDiff>0?'+':''}${cashDiff})</span>` + (rec.cashNote ? `<br><small class="note-text text-danger">• ${rec.cashNote}</small>` : '');
+              const walletDisplay = `<strong>${rec.walletFound}</strong> <span class="${walletClass}">(${walletDiff>0?'+':''}${walletDiff})</span>` + (rec.walletNote ? `<br><small class="note-text text-danger">• ${rec.walletNote}</small>` : '');
 
-              const html = `
-                  <tr class="handover-row align-middle">
-                      <td>${rec.shiftName}</td>
-                      <td>${date}</td>
-                      <td>${cashDisplay}</td>
-                      <td>${walletDisplay}</td>
-                      <td class="text-start small text-muted"><span class="note-text">${rec.generalNote || '-'}</span></td>
-                  </tr>`;
-              list.innerHTML += html;
+              list.innerHTML += `<tr class="handover-row align-middle"><td>${rec.shiftName}</td><td>${date}</td><td>${cashDisplay}</td><td>${walletDisplay}</td><td class="text-start small text-muted"><span class="note-text">${rec.generalNote || '-'}</span></td></tr>`;
           });
-      } else {
-          list.innerHTML = '<tr><td colspan="5">لا يوجد سجلات سابقة</td></tr>';
-      }
+      } else { list.innerHTML = '<tr><td colspan="5">لا يوجد سجلات سابقة</td></tr>'; }
   });
 
-  // --- الأوردرات ---
+  // --- Orders ---
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
       const orderType = document.getElementById('orderType').value;
       const driverSelect = document.getElementById('driverSelect');
       const selectedDriverName = driverSelect.value;
       const shift = getCurrentShift();
-
       const storeName = document.getElementById('storeName').value;
       const details = document.getElementById('orderDetails').value;
-      
       let price = document.getElementById('deliveryPrice').value;
       let phone = document.getElementById('clientPhone').value;
       let address = document.getElementById('address').value;
 
       if(!storeName || !details) { alert("اكتب اسم المحل والتفاصيل"); return; }
-      if(orderType === 'normal' && (!price || !phone || !address)) {
-          alert("أكمل بيانات الأوردر العادي"); return;
-      }
+      if(orderType === 'normal' && (!price || !phone || !address)) { alert("أكمل بيانات الأوردر العادي"); return; }
 
       const orderData = {
-          type: orderType,
-          storeName: storeName,
-          details: details,
-          price: price,
-          clientPhone: phone,
-          address: address,
-          driver: selectedDriverName,
-          status: selectedDriverName ? 'new' : 'pending',
-          shiftId: shift.id,
-          timestamp: Date.now()
+          type: orderType, storeName: storeName, details: details, price: price,
+          clientPhone: phone, address: address, driver: selectedDriverName,
+          status: selectedDriverName ? 'new' : 'pending', shiftId: shift.id, timestamp: Date.now()
       };
 
       if(id) {
@@ -410,10 +375,17 @@
           else if (orderData.driver) orderData.status = 'new';
           update(ref(db, 'orders/' + id), orderData);
           cancelEdit();
-      } else {
-          push(ref(db, 'orders'), orderData);
-      }
+      } else { push(ref(db, 'orders'), orderData); }
       clearForm();
+  }
+
+  // دالة الحذف الجديدة
+  window.deleteOrder = function(id) {
+      if(confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) {
+          remove(ref(db, 'orders/' + id))
+            .then(() => console.log("Deleted"))
+            .catch(err => alert("حدث خطأ في الحذف"));
+      }
   }
 
   onValue(ref(db, 'orders'), (snapshot) => {
@@ -424,7 +396,7 @@
   function refreshOrdersView() {
       const list = document.getElementById('ordersList');
       list.innerHTML = '';
-      if(!allOrdersData) { list.innerHTML = '<p class="text-center">مفيش طلبات</p>'; return; }
+      if(!allOrdersData) { list.innerHTML = '<p class="text-center text-muted">مفيش طلبات</p>'; return; }
 
       const orders = Object.entries(allOrdersData).reverse();
       const currentShiftId = getCurrentShift().id;
@@ -442,16 +414,16 @@
 
       filteredOrders.forEach(([id, order]) => {
           let statusClass = order.status === 'new' ? 'status-new' : (order.status === 'done' ? 'status-done' : 'status-pending');
-          let statusText = order.status === 'new' ? '🛵 جاري' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
+          let statusText = order.status === 'new' ? '🛵 جاري التوصيل' : (order.status === 'done' ? '✅ تم التوصيل' : '⚠️ في الانتظار');
           
           const driverObj = driversList.find(d => d.name === order.driver);
           const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
           let typeLabel = "";
-          if(order.type === 'store') typeLabel = " (محل)";
-          else if(order.type === 'online') typeLabel = " (أونلاين)";
+          if(order.type === 'store') typeLabel = ' <span class="badge bg-warning text-dark">محل</span>';
+          else if(order.type === 'online') typeLabel = ' <span class="badge bg-info text-dark">أونلاين</span>';
 
-          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
@@ -463,10 +435,23 @@
           const html = `
               <div class="order-card ${statusClass}">
                   <div class="row align-items-center">
-                      <div class="col-md-3 border-end"><strong>${order.storeName}</strong>${typeLabel}<br><small>${order.price||0} ج</small></div>
-                      <div class="col-md-4 border-end"><strong>${order.details}</strong><br><small>${order.address || 'بدون عنوان'}</small></div>
-                      <div class="col-md-3"><span class="badge bg-secondary">${order.driver||'-'}</span><br><strong>${statusText}</strong></div>
-                      <div class="col-md-2 text-end">${whatsappBtn} <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1">تعديل</button></div>
+                      <div class="col-md-3 border-end">
+                          <strong class="text-brand-blue">${order.storeName}</strong>${typeLabel}<br>
+                          <small class="text-muted fw-bold">${order.price||0} ج</small>
+                      </div>
+                      <div class="col-md-4 border-end">
+                          <strong>${order.details}</strong><br>
+                          <small class="text-muted">${order.address || 'بدون عنوان'}</small>
+                      </div>
+                      <div class="col-md-3">
+                          <span class="badge bg-secondary mb-1">${order.driver||'-'}</span><br>
+                          <strong>${statusText}</strong>
+                      </div>
+                      <div class="col-md-2 text-end">
+                          ${whatsappBtn}
+                          <button onclick="editOrder('${id}')" class="btn btn-outline-primary btn-sm mt-1"><i class="fas fa-edit"></i></button>
+                          <button onclick="deleteOrder('${id}')" class="btn btn-outline-danger btn-sm mt-1 ms-1"><i class="fas fa-trash"></i></button>
+                      </div>
                   </div>
               </div>`;
           list.innerHTML += html;
@@ -528,13 +513,45 @@
       document.getElementById('driverSelect').value = '';
   }
 
+  // --- Stats Breakdown (Updated) ---
   function calculateStats(ordersArr) {
       const total = ordersArr.length;
       let done = 0;
-      ordersArr.forEach(o => { if(o.status === 'done') done++; });
+      let driversCount = {};
+
+      ordersArr.forEach(([k, o]) => {
+          if(o.status === 'done') done++;
+          if(o.driver) {
+              driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
+          }
+      });
+
+      let driversHtml = '';
+      for (const [name, count] of Object.entries(driversCount)) {
+          driversHtml += `
+            <div class="col-6 col-md-2">
+                <div class="stats-card driver-stat-box">
+                    <small class="text-muted">${name}</small><br>
+                    <span class="fw-bold">${count}</span>
+                </div>
+            </div>`;
+      }
+
       document.getElementById('statsBar').innerHTML = `
-          <div class="col-md-6 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
-          <div class="col-md-6 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>`;
+          <div class="col-6 col-md-2">
+              <div class="stats-card border-primary">
+                  <div class="text-muted small">الإجمالي</div>
+                  <div class="stats-number">${total}</div>
+              </div>
+          </div>
+          <div class="col-6 col-md-2">
+              <div class="stats-card border-success">
+                  <div class="text-muted small">تم التوصيل</div>
+                  <div class="stats-number text-success">${done}</div>
+              </div>
+          </div>
+          ${driversHtml}
+      `;
   }
   
   window.exportToExcel = function() {
