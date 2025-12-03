@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني</title>
+    <title>سيستم اخدمني V8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,59 +12,73 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* تطبيق خط كايرو على كل الموقع */
-        body { 
-            background-color: #f4f6f8; 
-            font-family: 'Cairo', sans-serif; 
-        }
+        /* الخط والألوان الأساسية */
+        body { background-color: #f4f6f8; font-family: 'Cairo', sans-serif; }
 
-        /* ألوان البراند */
-        .bg-brand-blue { background-color: #0d47a1 !important; } /* أزرق غامق */
-        .btn-brand-orange { background-color: #ff6f00; color: white; border: none; }
-        .btn-brand-orange:hover { background-color: #e65100; color: white; }
+        /* ألوان البراند الجديدة */
+        .bg-brand-orange { background-color: #ff6f00 !important; } /* الهيدر أورنج */
+        .btn-brand-blue { background-color: #0d47a1; color: white; border: none; } /* الأزرار أزرق */
+        .btn-brand-blue:hover { background-color: #002171; color: white; }
+        
         .text-brand-orange { color: #ff6f00; }
+        .text-brand-blue { color: #0d47a1; }
+
+        /* اللوجو */
+        .navbar-brand img { height: 45px; margin-left: 10px; border-radius: 8px; border: 2px solid white; }
+
+        /* شاشة تسجيل الدخول */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0d47a1; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .login-box { background: white; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
         /* كروت الأوردرات */
         .order-card { 
-            background: white; 
-            border-radius: 12px; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            border-right: 6px solid #ccc; 
-            transition: all 0.3s ease; 
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: all 0.2s; 
         }
         .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         
         .status-new { border-right-color: #0d47a1; } /* أزرق */
         .status-done { border-right-color: #2e7d32; background-color: #f1f8e9; opacity: 0.9; } /* أخضر */
-        .status-pending { border-right-color: #ff6f00; background-color: #fff3e0; } /* برتقالي */
+        .status-pending { border-right-color: #ff6f00; background-color: #fff3e0; } /* أورنج */
 
         /* كروت الإحصائيات */
         .stats-card { background: #fff; border-radius: 10px; padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); height: 100%; border: 1px solid #eee; }
         .stats-number { font-size: 20px; font-weight: bold; color: #0d47a1; }
         .driver-stat-box { border-top: 3px solid #ff6f00; }
 
-        /* شارة الشفت */
-        .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #0d47a1; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
-        
-        .optional-input { background-color: #fafafa; border-color: #eee; }
-        
-        /* تنسيق الجداول */
+        /* الجداول والملاحظات */
         .handover-row { font-size: 0.85em; }
         .diff-pos { color: green; font-weight: bold; }
         .diff-neg { color: red; font-weight: bold; }
         .diff-zero { color: #aaa; }
         .note-text { white-space: pre-wrap; display: block; margin-top: 5px; color: #555; }
+        .optional-input { background-color: #fafafa; border-color: #eee; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-brand-blue mb-4 shadow-sm">
+<div id="loginOverlay">
+    <div class="login-box">
+        <img src="logo.jpg" alt="Logo" style="width: 80px; margin-bottom: 20px; border-radius: 50%;">
+        <h4 class="mb-4 text-brand-blue fw-bold">تسجيل الدخول</h4>
+        <input type="text" id="loginUser" class="form-control mb-3" placeholder="اسم المستخدم">
+        <input type="password" id="loginPass" class="form-control mb-3" placeholder="كلمة المرور">
+        <button onclick="checkLogin()" class="btn btn-brand-orange w-100 fw-bold py-2 text-white">دخول للنظام 🚀</button>
+    </div>
+</div>
+
+<nav class="navbar navbar-dark bg-brand-orange mb-4 shadow-sm">
     <div class="container">
-        <span class="navbar-brand mb-0 h1 fw-bold"><i class="fas fa-motorcycle"></i> اخدمني - <span id="currentShiftDisplay" class="text-warning small">...</span></span>
+        <span class="navbar-brand mb-0 h1 fw-bold d-flex align-items-center">
+            <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'"> 
+            <span>اخدمني - <span id="currentShiftDisplay" class="text-white small" style="opacity: 0.8;">...</span></span>
+        </span>
         <div>
-            <button onclick="openHandoverModal()" class="btn btn-warning btn-sm fw-bold me-2"><i class="fas fa-coins"></i> العهدة</button>
+            <button onclick="openHandoverModal()" class="btn btn-light btn-sm fw-bold text-brand-orange me-2"><i class="fas fa-coins"></i> العهدة</button>
             <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> الطيارين</button>
             <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> إكسيل</button>
         </div>
@@ -75,7 +89,7 @@
     <div class="row g-2 mb-4" id="statsBar"></div>
 
     <div class="card p-4 mb-4 shadow-sm border-0">
-        <h5 id="formTitle" class="mb-3 text-brand-orange fw-bold"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
+        <h5 id="formTitle" class="mb-3 text-brand-blue fw-bold"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
         <input type="hidden" id="editOrderId">
         <div class="row g-3">
             
@@ -113,11 +127,11 @@
             <div class="col-md-4">
                 <label class="text-muted small">الطيار</label>
                 <select id="driverSelect" class="form-select">
-                    <option value="">جاري التحميل...</option>
+                    <option value="">جاري تحميل الطيارين...</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button onclick="saveOrder()" id="saveBtn" class="btn btn-brand-orange w-100 fw-bold">حفظ</button>
+                <button onclick="saveOrder()" id="saveBtn" class="btn btn-brand-blue w-100 fw-bold">حفظ</button>
                 <button onclick="cancelEdit()" id="cancelBtn" class="btn btn-secondary w-100 ms-2" style="display:none;">إلغاء</button>
             </div>
         </div>
@@ -140,7 +154,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info small">اكتب الرقم عادي والسيستم هيضبطه.</div>
                 <div class="input-group mb-3">
                     <input type="text" id="newDriverName" class="form-control" placeholder="الاسم">
                     <input type="text" id="newDriverPhone" class="form-control" placeholder="الرقم">
@@ -184,11 +197,10 @@
                         <textarea id="generalHandoverNote" class="form-control border-dark" rows="2" placeholder="مصاريف عامة للشيفت..."></textarea>
                     </div>
                     <div class="col-12 mt-2">
-                        <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم واقفال الشفت 💾</button>
+                        <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم 💾</button>
                     </div>
                 </div>
                 <hr>
-                <h6 class="text-muted">سجل التسليمات السابقة:</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered text-center align-middle">
                         <thead class="table-light"><tr><th>الشفت</th><th>التاريخ</th><th>الدرج</th><th>المحفظة</th><th>ملاحظات</th></tr></thead>
@@ -198,10 +210,6 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="shift-badge" id="shiftBadge">
-    <i class="fas fa-clock"></i> <span id="shiftText">...</span>
 </div>
 
 <script type="module">
@@ -228,6 +236,22 @@
   const FIXED_CASH = 1000;
   const FIXED_WALLET = 1000;
 
+  // --- Login Logic ---
+  window.checkLogin = function() {
+      const u = document.getElementById('loginUser').value;
+      const p = document.getElementById('loginPass').value;
+      if(u === 'ak' && p === 'ak1') {
+          document.getElementById('loginOverlay').style.display = 'none';
+          sessionStorage.setItem('isLoggedIn', 'true');
+      } else {
+          alert('بيانات الدخول غير صحيحة ❌');
+      }
+  }
+  // Check session on load
+  if(sessionStorage.getItem('isLoggedIn') === 'true') {
+      document.getElementById('loginOverlay').style.display = 'none';
+  }
+
   // --- Helpers ---
   function fixEgPhone(num) {
       if(!num) return "";
@@ -247,7 +271,6 @@
   function updateShiftDisplay() {
       const shift = getCurrentShift();
       document.getElementById('currentShiftDisplay').innerText = shift.name;
-      document.getElementById('shiftText').innerText = shift.name;
   }
   setInterval(updateShiftDisplay, 60000);
   updateShiftDisplay();
@@ -379,7 +402,6 @@
       clearForm();
   }
 
-  // دالة الحذف الجديدة
   window.deleteOrder = function(id) {
       if(confirm('هل أنت متأكد من حذف هذا الطلب نهائياً؟')) {
           remove(ref(db, 'orders/' + id))
@@ -423,7 +445,7 @@
           if(order.type === 'store') typeLabel = ' <span class="badge bg-warning text-dark">محل</span>';
           else if(order.type === 'online') typeLabel = ' <span class="badge bg-info text-dark">أونلاين</span>';
 
-          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
@@ -513,14 +535,15 @@
       document.getElementById('driverSelect').value = '';
   }
 
-  // --- Stats Breakdown (Updated) ---
   function calculateStats(ordersArr) {
       const total = ordersArr.length;
       let done = 0;
+      let waiting = 0;
       let driversCount = {};
 
       ordersArr.forEach(([k, o]) => {
           if(o.status === 'done') done++;
+          if(o.status === 'pending') waiting++;
           if(o.driver) {
               driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
           }
@@ -532,22 +555,28 @@
             <div class="col-6 col-md-2">
                 <div class="stats-card driver-stat-box">
                     <small class="text-muted">${name}</small><br>
-                    <span class="fw-bold">${count}</span>
+                    <span class="fw-bold text-dark">${count}</span>
                 </div>
             </div>`;
       }
 
       document.getElementById('statsBar').innerHTML = `
-          <div class="col-6 col-md-2">
+          <div class="col-4 col-md-2">
               <div class="stats-card border-primary">
                   <div class="text-muted small">الإجمالي</div>
-                  <div class="stats-number">${total}</div>
+                  <div class="stats-number text-brand-blue">${total}</div>
               </div>
           </div>
-          <div class="col-6 col-md-2">
+          <div class="col-4 col-md-2">
               <div class="stats-card border-success">
                   <div class="text-muted small">تم التوصيل</div>
                   <div class="stats-number text-success">${done}</div>
+              </div>
+          </div>
+          <div class="col-4 col-md-2">
+              <div class="stats-card border-warning">
+                  <div class="text-muted small">قيد الانتظار</div>
+                  <div class="stats-number text-warning">${waiting}</div>
               </div>
           </div>
           ${driversHtml}
