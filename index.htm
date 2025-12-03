@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سيستم اخدمني V9.1</title>
+    <title>سيستم اخدمني V9.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,15 +21,15 @@
         .text-brand-orange { color: #ff6f00; }
         .text-brand-blue { color: #0d47a1; }
 
-        /* سحر اللوجو: إخفاء الخلفية السوداء */
+        /* اللوجو: إزالة الخلفية السوداء */
         .blend-logo { 
-            mix-blend-mode: screen; /* دي اللي بتشيل الأسود */
+            mix-blend-mode: screen; 
             border-radius: 5px;
         }
         
-        /* تنسيق اللوجو في الهيدر وشاشة الدخول */
-        .navbar-brand img { height: 55px; margin-left: 10px; width: auto; }
-        .login-box img { width: 120px; margin-bottom: 15px; }
+        /* تنسيق اللوجو */
+        .navbar-brand img { height: 50px; margin-left: 10px; width: auto; }
+        .login-box img { width: 100px; margin-bottom: 20px; }
 
         /* شاشة القفل */
         #loginOverlay {
@@ -39,7 +39,7 @@
         }
         .login-box { background: white; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
-        /* توحيد شكل الكروت */
+        /* الكروت */
         .order-card { 
             background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: all 0.2s; 
@@ -55,7 +55,6 @@
         .stats-number { font-size: 20px; font-weight: bold; color: #0d47a1; }
         .driver-stat-box { border-top: 3px solid #ff6f00; }
 
-        /* جداول وملاحظات */
         .handover-row { font-size: 0.85em; }
         .diff-pos { color: green; font-weight: bold; }
         .diff-neg { color: red; font-weight: bold; }
@@ -68,7 +67,8 @@
 
 <div id="loginOverlay">
     <div class="login-box">
-        <img src="unnamed.jpg" alt="Logo" class="blend-logo" style="background-color:black;"> <h4 class="mb-4 text-brand-blue fw-bold">تسجيل الدخول</h4>
+        <img src="logo.jpg" alt="Logo" class="blend-logo" style="background-color:black;"> 
+        <h4 class="mb-4 text-brand-blue fw-bold">تسجيل الدخول</h4>
         <input type="text" id="loginUser" class="form-control mb-3" placeholder="اسم المستخدم">
         <input type="password" id="loginPass" class="form-control mb-3" placeholder="كلمة المرور">
         <button onclick="checkLogin()" class="btn btn-brand-orange w-100 fw-bold py-2 text-white">دخول للنظام 🚀</button>
@@ -78,7 +78,7 @@
 <nav class="navbar navbar-dark bg-brand-orange mb-4 shadow-sm">
     <div class="container">
         <span class="navbar-brand mb-0 h1 fw-bold d-flex align-items-center">
-            <img src="https://i.ibb.co/sJRX04Z/92f0277e-3789-4969-9637-94d821d03bb2.jpg" alt="Logo" class="blend-logo"> 
+            <img src="logo.jpg" alt="Logo" class="blend-logo"> 
             <span class="ms-2">اخدمني - <span id="currentShiftDisplay" class="text-white small" style="opacity: 0.9;">...</span></span>
         </span>
         <div>
@@ -96,7 +96,6 @@
         <h5 id="formTitle" class="mb-3 text-brand-blue fw-bold"><i class="fas fa-plus-circle"></i> إضافة طلب جديد</h5>
         <input type="hidden" id="editOrderId">
         <div class="row g-3">
-            
             <div class="col-md-12">
                 <label class="text-muted small fw-bold">نوع الأوردر</label>
                 <select id="orderType" class="form-select border-primary" onchange="checkOrderType()">
@@ -105,7 +104,6 @@
                     <option value="online">🌐 أوردر أونلاين</option>
                 </select>
             </div>
-
             <div class="col-md-3">
                 <label class="text-muted small">اسم المحل</label>
                 <input type="text" id="storeName" class="form-control" placeholder="مطعم...">
@@ -114,7 +112,6 @@
                 <label class="text-muted small">تفاصيل الأوردر</label>
                 <input type="text" id="orderDetails" class="form-control" placeholder="تفاصيل...">
             </div>
-            
             <div class="col-md-2">
                 <label class="text-muted small" id="lblPrice">السعر</label>
                 <input type="number" id="deliveryPrice" class="form-control" placeholder="ج.م">
@@ -127,7 +124,6 @@
                 <label class="text-muted small" id="lblAddress">العنوان</label>
                 <input type="text" id="address" class="form-control" placeholder="العنوان...">
             </div>
-            
             <div class="col-md-4">
                 <label class="text-muted small">الطيار</label>
                 <select id="driverSelect" class="form-select">
@@ -158,7 +154,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info small">اكتب الرقم عادي والسيستم هيضبطه.</div>
                 <div class="input-group mb-3">
                     <input type="text" id="newDriverName" class="form-control" placeholder="الاسم">
                     <input type="text" id="newDriverPhone" class="form-control" placeholder="الرقم">
@@ -221,7 +216,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
   import { getDatabase, ref, push, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-  // !!!!!!!!!!!!!! بياناتك !!!!!!!!!!!!!!
   const firebaseConfig = {
     apiKey: "AIzaSyCEBbuudt7RRp0ONywp8oit7TzoWgXo1PI",
     authDomain: "akhdemny-system.firebaseapp.com",
@@ -241,22 +235,18 @@
   const FIXED_CASH = 1000;
   const FIXED_WALLET = 1000;
 
-  // --- Login Logic ---
   window.checkLogin = function() {
       const u = document.getElementById('loginUser').value;
       const p = document.getElementById('loginPass').value;
       if(u === 'ak' && p === 'ak1') {
           document.getElementById('loginOverlay').style.display = 'none';
           sessionStorage.setItem('isLoggedIn', 'true');
-      } else {
-          alert('بيانات الدخول غير صحيحة ❌');
-      }
+      } else { alert('بيانات الدخول غير صحيحة ❌'); }
   }
   if(sessionStorage.getItem('isLoggedIn') === 'true') {
       document.getElementById('loginOverlay').style.display = 'none';
   }
 
-  // --- Helpers ---
   function fixEgPhone(num) {
       if(!num) return "";
       let n = num.toString().replace(/\D/g, ''); 
@@ -275,7 +265,6 @@
   function updateShiftDisplay() {
       const shift = getCurrentShift();
       document.getElementById('currentShiftDisplay').innerText = shift.name;
-      document.getElementById('shiftText').innerText = shift.name;
   }
   setInterval(updateShiftDisplay, 60000);
   updateShiftDisplay();
@@ -296,7 +285,6 @@
       });
   }
 
-  // --- Drivers ---
   const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
   window.openDriverModal = () => driverModal.show();
 
@@ -329,7 +317,6 @@
   }
   window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  // --- Handover ---
   const handoverModal = new bootstrap.Modal(document.getElementById('handoverModal'));
   window.openHandoverModal = () => handoverModal.show();
 
@@ -376,7 +363,6 @@
       } else { list.innerHTML = '<tr><td colspan="5">لا يوجد سجلات سابقة</td></tr>'; }
   });
 
-  // --- Orders ---
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
       const orderType = document.getElementById('orderType').value;
@@ -446,7 +432,6 @@
           const driverObj = driversList.find(d => d.name === order.driver);
           const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
-          // توحيد الشكل مع إضافة "بادج" مميز
           let typeBadge = "";
           if(order.type === 'store') typeBadge = ' <span class="badge bg-warning text-dark" style="font-size:0.7em">محل</span>';
           else if(order.type === 'online') typeBadge = ' <span class="badge bg-info text-white" style="font-size:0.7em">أونلاين</span>';
@@ -456,11 +441,10 @@
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
               whatsappBtn = `<a href="whatsapp://send?phone=${driverPhone}&text=${msg}" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال</a>`;
-          } else if (!order.driver) {
+          } else if (!order.driver && order.type === 'normal') {
               statusText += ` <button class="btn btn-outline-warning btn-sm ms-2" onclick="editOrder('${id}')">تعيين</button>`;
           }
 
-          // نفس تصميم الكارت لكل الأنواع
           const html = `
               <div class="order-card ${statusClass}">
                   <div class="row align-items-center">
@@ -609,4 +593,3 @@
 </script>
 </body>
 </html>
-
