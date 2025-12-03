@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني (شفتات)</title>
+    <title>لوحة تحكم - اخدمني V6</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,9 +16,13 @@
         .stats-card { background: #fff; border-radius: 10px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stats-number { font-size: 24px; font-weight: bold; color: #0d6efd; }
         .shift-badge { position: fixed; bottom: 20px; left: 20px; background: #343a40; color: #fff; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; font-weight: bold; }
-        
-        /* تنسيق بسيط للحقول الاختيارية */
         .optional-input { background-color: #f9f9f9; }
+        
+        /* تنسيق جدول العهدة */
+        .handover-row { font-size: 0.9em; }
+        .diff-pos { color: green; font-weight: bold; }
+        .diff-neg { color: red; font-weight: bold; }
+        .diff-zero { color: #aaa; }
     </style>
 </head>
 <body>
@@ -27,8 +31,9 @@
     <div class="container">
         <span class="navbar-brand mb-0 h1">🛵 اخدمني - <span id="currentShiftDisplay" class="text-warning" style="font-size: 0.8em;">...</span></span>
         <div>
-            <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> إدارة الطيارين</button>
-            <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> شيت إكسيل</button>
+            <button onclick="openHandoverModal()" class="btn btn-warning btn-sm fw-bold me-2"><i class="fas fa-coins"></i> تسليم العهدة</button>
+            <button onclick="openDriverModal()" class="btn btn-outline-light btn-sm me-2"><i class="fas fa-users-cog"></i> الطيارين</button>
+            <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> إكسيل</button>
         </div>
     </div>
 </nav>
@@ -102,13 +107,73 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info small">اكتب الرقم عادي (010...) والسيستم هيضبطه لوحده دولي.</div>
+                <div class="alert alert-info small">اكتب الرقم عادي والسيستم هيضبطه.</div>
                 <div class="input-group mb-3">
-                    <input type="text" id="newDriverName" class="form-control" placeholder="اسم الطيار">
-                    <input type="text" id="newDriverPhone" class="form-control" placeholder="رقم الواتساب">
+                    <input type="text" id="newDriverName" class="form-control" placeholder="الاسم">
+                    <input type="text" id="newDriverPhone" class="form-control" placeholder="الرقم">
                     <button onclick="addNewDriver()" class="btn btn-primary">إضافة</button>
                 </div>
                 <ul class="list-group" id="driversListModal"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="handoverModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark">💰 تقفيل الشفت وتسليم العهدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card p-3 border-secondary">
+                            <h6 class="text-muted">💵 نقدية الدرج (الكاش)</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>العهدة الثابتة:</span>
+                                <strong>1000 ج.م</strong>
+                            </div>
+                            <label class="small">الموجود فعلياً في الدرج:</label>
+                            <input type="number" id="cashFound" class="form-control form-control-lg border-success" placeholder="عديت كام؟">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3 border-secondary">
+                            <h6 class="text-muted">📱 المحفظة (فودافون كاش)</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>الرصيد الثابت:</span>
+                                <strong>1000 ج.م</strong>
+                            </div>
+                            <label class="small">الرصيد الحالي في المحفظة:</label>
+                            <input type="number" id="walletFound" class="form-control form-control-lg border-success" placeholder="الرصيد كام؟">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <textarea id="handoverNote" class="form-control" placeholder="ملاحظات (مثال: خصم 50ج بنزين - زيادة 20ج فاتورة قديمة...)"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button onclick="saveHandover()" class="btn btn-dark w-100 fw-bold py-2">تسجيل التسليم 💾</button>
+                    </div>
+                </div>
+
+                <hr>
+                <h6 class="text-muted">سجل التسليمات السابقة:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>الشفت</th>
+                                <th>التاريخ</th>
+                                <th>الدرج (فرق)</th>
+                                <th>المحفظة (فرق)</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="handoverHistoryList"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -139,12 +204,36 @@
   let driversList = [];
   let allOrdersData = {};
   let showAllOrders = false;
+  const FIXED_CASH = 1000;
+  const FIXED_WALLET = 1000;
 
-  // دالة لتغيير شكل الحقول حسب نوع الأوردر
+  // --- دوال المساعدة ---
+  function fixEgPhone(num) {
+      if(!num) return "";
+      let n = num.toString().replace(/\D/g, ''); 
+      if (n.startsWith('01')) return '20' + n.substring(1); 
+      if (n.startsWith('1')) return '20' + n; 
+      return n; 
+  }
+
+  function getCurrentShift() {
+      const hour = new Date().getHours();
+      if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص-5م)" };
+      if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م-1ص)" };
+      return { id: 3, name: "شفت سهرة (1ص-9ص)" };
+  }
+
+  function updateShiftDisplay() {
+      const shift = getCurrentShift();
+      document.getElementById('currentShiftDisplay').innerText = shift.name;
+      document.getElementById('shiftText').innerText = shift.name;
+  }
+  setInterval(updateShiftDisplay, 60000);
+  updateShiftDisplay();
+
   window.checkOrderType = function() {
       const type = document.getElementById('orderType').value;
       const inputs = ['deliveryPrice', 'clientPhone', 'address'];
-      
       const isOptional = (type === 'store' || type === 'online');
 
       inputs.forEach(id => {
@@ -161,29 +250,7 @@
       });
   }
 
-  function fixEgPhone(num) {
-      if(!num) return "";
-      let n = num.toString().replace(/\D/g, ''); 
-      if (n.startsWith('01')) return '20' + n.substring(1); 
-      if (n.startsWith('1')) return '20' + n; 
-      return n; 
-  }
-
-  function getCurrentShift() {
-      const hour = new Date().getHours();
-      if (hour >= 9 && hour < 17) return { id: 1, name: "شفت صباحي (9ص - 5م) ☀️" };
-      if (hour >= 17 || hour < 1) return { id: 2, name: "شفت مسائي (5م - 1ص) 🌙" };
-      return { id: 3, name: "شفت سهرة (1ص - 9ص) 🦉" };
-  }
-
-  function updateShiftDisplay() {
-      const shift = getCurrentShift();
-      document.getElementById('currentShiftDisplay').innerText = shift.name;
-      document.getElementById('shiftText').innerText = shift.name;
-  }
-  setInterval(updateShiftDisplay, 60000);
-  updateShiftDisplay();
-
+  // --- إدارة الطيارين ---
   const driverModal = new bootstrap.Modal(document.getElementById('driverModal'));
   window.openDriverModal = () => driverModal.show();
 
@@ -218,44 +285,89 @@
           document.getElementById('newDriverPhone').value = '';
       }
   }
+  window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  window.deleteDriver = function(id) {
-      if(confirm('هل أنت متأكد من حذف الطيار؟')) remove(ref(db, 'drivers/' + id));
+  // --- إدارة العهدة (الجديد) ---
+  const handoverModal = new bootstrap.Modal(document.getElementById('handoverModal'));
+  window.openHandoverModal = () => handoverModal.show();
+
+  window.saveHandover = function() {
+      const cash = document.getElementById('cashFound').value;
+      const wallet = document.getElementById('walletFound').value;
+      const note = document.getElementById('handoverNote').value;
+      const shift = getCurrentShift();
+
+      if(!cash || !wallet) { alert("من فضلك اكتب الموجود في الدرج والمحفظة"); return; }
+
+      push(ref(db, 'handovers'), {
+          shiftName: shift.name,
+          cashFound: cash,
+          walletFound: wallet,
+          note: note,
+          timestamp: Date.now()
+      });
+
+      document.getElementById('cashFound').value = '';
+      document.getElementById('walletFound').value = '';
+      document.getElementById('handoverNote').value = '';
+      alert("تم تسجيل تسليم العهدة بنجاح ✅");
   }
 
-  // --- دالة الحفظ المعدلة ---
+  // عرض سجل العهدة
+  onValue(ref(db, 'handovers'), (snapshot) => {
+      const list = document.getElementById('handoverHistoryList');
+      list.innerHTML = '';
+      const data = snapshot.val();
+      if(data) {
+          const records = Object.values(data).reverse().slice(0, 10); // آخر 10 تسليمات
+          records.forEach(rec => {
+              const date = new Date(rec.timestamp).toLocaleString('ar-EG', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'});
+              
+              // حساب الفرق
+              const cashDiff = rec.cashFound - FIXED_CASH;
+              const walletDiff = rec.walletFound - FIXED_WALLET;
+              
+              // تنسيق الفرق (عجز ولا زيادة)
+              const cashClass = cashDiff > 0 ? 'diff-pos' : (cashDiff < 0 ? 'diff-neg' : 'diff-zero');
+              const walletClass = walletDiff > 0 ? 'diff-pos' : (walletDiff < 0 ? 'diff-neg' : 'diff-zero');
+
+              const html = `
+                  <tr class="handover-row">
+                      <td>${rec.shiftName}</td>
+                      <td>${date}</td>
+                      <td>${rec.cashFound} <span class="${cashClass}">(${cashDiff > 0 ? '+' : ''}${cashDiff})</span></td>
+                      <td>${rec.walletFound} <span class="${walletClass}">(${walletDiff > 0 ? '+' : ''}${walletDiff})</span></td>
+                      <td class="text-start small">${rec.note || '-'}</td>
+                  </tr>`;
+              list.innerHTML += html;
+          });
+      } else {
+          list.innerHTML = '<tr><td colspan="5">لا يوجد سجلات سابقة</td></tr>';
+      }
+  });
+
+  // --- الأوردرات ---
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
-      const orderType = document.getElementById('orderType').value; // نوع الأوردر
+      const orderType = document.getElementById('orderType').value;
       const driverSelect = document.getElementById('driverSelect');
       const selectedDriverName = driverSelect.value;
       const shift = getCurrentShift();
 
-      // البيانات الأساسية
       const storeName = document.getElementById('storeName').value;
       const details = document.getElementById('orderDetails').value;
       
-      // البيانات اللي ممكن تكون اختياري
       let price = document.getElementById('deliveryPrice').value;
       let phone = document.getElementById('clientPhone').value;
       let address = document.getElementById('address').value;
 
-      // التحقق من البيانات (Validation Logic)
-      if(!storeName || !details) { 
-          alert("لازم تكتب اسم المحل وتفاصيل الأوردر"); 
-          return; 
-      }
-
-      // لو الأوردر "عادي"، لازم باقي البيانات تكون موجودة
-      if(orderType === 'normal') {
-          if(!price || !phone || !address) {
-              alert("في الأوردر العادي لازم تكتب السعر والموبايل والعنوان");
-              return;
-          }
+      if(!storeName || !details) { alert("اكتب اسم المحل والتفاصيل"); return; }
+      if(orderType === 'normal' && (!price || !phone || !address)) {
+          alert("أكمل بيانات الأوردر العادي"); return;
       }
 
       const orderData = {
-          type: orderType, // تسجيل النوع
+          type: orderType,
           storeName: storeName,
           details: details,
           price: price,
@@ -304,17 +416,16 @@
 
       filteredOrders.forEach(([id, order]) => {
           let statusClass = order.status === 'new' ? 'status-new' : (order.status === 'done' ? 'status-done' : 'status-pending');
-          let statusText = order.status === 'new' ? '🛵 جاري التوصيل' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
+          let statusText = order.status === 'new' ? '🛵 جاري' : (order.status === 'done' ? '✅ تم' : '⚠️ انتظار');
           
           const driverObj = driversList.find(d => d.name === order.driver);
           const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
-          // تحديد نوع الاوردر للعرض
           let typeLabel = "";
           if(order.type === 'store') typeLabel = " (محل)";
           else if(order.type === 'online') typeLabel = " (أونلاين)";
 
-          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *رابط التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
@@ -350,11 +461,9 @@
       });
   }
 
-  window.toggleViewAll = function() {
+  window.toggleViewAll = () => {
       showAllOrders = !showAllOrders;
-      document.getElementById('viewToggleBtn').innerText = showAllOrders ? "عرض الشفت الحالي فقط" : "عرض كل طلبات اليوم";
-      document.getElementById('viewToggleBtn').classList.toggle('btn-outline-secondary');
-      document.getElementById('viewToggleBtn').classList.toggle('btn-primary');
+      document.getElementById('viewToggleBtn').innerText = showAllOrders ? "الشفت الحالي" : "عرض اليوم كله";
       refreshOrdersView();
   }
 
@@ -362,11 +471,8 @@
       const order = allOrdersData[id];
       if(!order) return;
       document.getElementById('editOrderId').value = id;
-      
-      // استرجاع نوع الأوردر
       document.getElementById('orderType').value = order.type || 'normal';
-      checkOrderType(); // تحديث شكل الحقول
-
+      checkOrderType();
       document.getElementById('storeName').value = order.storeName;
       document.getElementById('orderDetails').value = order.details;
       document.getElementById('deliveryPrice').value = order.price;
@@ -383,8 +489,6 @@
       document.getElementById('editOrderId').value = '';
       document.getElementById('saveBtn').innerText = "حفظ";
       document.getElementById('cancelBtn').style.display = 'none';
-      
-      // نرجع النوع للافتراضي
       document.getElementById('orderType').value = 'normal';
       checkOrderType();
   }
@@ -401,20 +505,10 @@
   function calculateStats(ordersArr) {
       const total = ordersArr.length;
       let done = 0;
-      let driversCount = {};
-      ordersArr.forEach(([k, o]) => {
-          if(o.status === 'done') done++;
-          if(o.driver) driversCount[o.driver] = (driversCount[o.driver] || 0) + 1;
-      });
-      let driversHtml = '';
-      for (const [name, count] of Object.entries(driversCount)) {
-          driversHtml += `<div class="col-md-2 mb-2"><div class="stats-card"><small>${name}</small><br><strong>${count}</strong></div></div>`;
-      }
+      ordersArr.forEach(o => { if(o.status === 'done') done++; });
       document.getElementById('statsBar').innerHTML = `
-          <div class="col-md-3 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
-          <div class="col-md-3 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>
-          ${driversHtml}
-      `;
+          <div class="col-md-6 mb-2"><div class="stats-card border-primary"><div>الإجمالي</div><div class="stats-number">${total}</div></div></div>
+          <div class="col-md-6 mb-2"><div class="stats-card border-success"><div>تم التسليم</div><div class="stats-number text-success">${done}</div></div></div>`;
   }
   
   window.exportToExcel = function() {
