@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم - اخدمني V6.2</title>
+    <title>لوحة تحكم - اخدمني V6.3</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -23,6 +23,9 @@
         .diff-pos { color: green; font-weight: bold; }
         .diff-neg { color: red; font-weight: bold; }
         .diff-zero { color: #aaa; }
+        
+        /* تنسيق الملاحظات عشان تظهر السطور تحت بعض */
+        .note-text { white-space: pre-wrap; display: block; margin-top: 5px; color: #555; }
     </style>
 </head>
 <body>
@@ -137,7 +140,9 @@
                             </div>
                             <label class="small">الموجود فعلياً في الدرج:</label>
                             <input type="number" id="cashFound" class="form-control form-control-lg border-success mb-2" placeholder="عديت كام؟">
-                            <input type="text" id="cashNote" class="form-control form-control-sm bg-light" placeholder="سبب العجز/الزيادة في الدرج...">
+                            
+                            <label class="small text-muted">ملاحظات الدرج:</label>
+                            <textarea id="cashNote" class="form-control bg-light" rows="3" placeholder="اكتب هنا.. ودوس انتر لسطر جديد"></textarea>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -149,13 +154,15 @@
                             </div>
                             <label class="small">الرصيد الحالي في المحفظة:</label>
                             <input type="number" id="walletFound" class="form-control form-control-lg border-success mb-2" placeholder="الرصيد كام؟">
-                            <input type="text" id="walletNote" class="form-control form-control-sm bg-light" placeholder="سبب العجز/الزيادة في المحفظة...">
+                            
+                            <label class="small text-muted">ملاحظات المحفظة:</label>
+                            <textarea id="walletNote" class="form-control bg-light" rows="3" placeholder="اكتب هنا.. ودوس انتر لسطر جديد"></textarea>
                         </div>
                     </div>
                     
                     <div class="col-12 mt-3">
                         <label class="text-muted fw-bold small">📝 ملاحظات عامة ومصاريف (بنزين، صيانة، إلخ):</label>
-                        <textarea id="generalHandoverNote" class="form-control border-dark" rows="2" placeholder="اكتب هنا أي مصاريف خرجت من الدرج (مثال: 50ج بنزين لمحمد)..."></textarea>
+                        <textarea id="generalHandoverNote" class="form-control border-dark" rows="2" placeholder="مصاريف عامة للشيفت..."></textarea>
                     </div>
 
                     <div class="col-12 mt-2">
@@ -292,7 +299,7 @@
   }
   window.deleteDriver = (id) => { if(confirm('حذف؟')) remove(ref(db, 'drivers/' + id)); };
 
-  // --- إدارة العهدة (الكود المحدث) ---
+  // --- إدارة العهدة (المعدلة) ---
   const handoverModal = new bootstrap.Modal(document.getElementById('handoverModal'));
   window.openHandoverModal = () => handoverModal.show();
 
@@ -300,7 +307,6 @@
       const cash = document.getElementById('cashFound').value;
       const wallet = document.getElementById('walletFound').value;
       
-      // التلات ملاحظات
       const cashNote = document.getElementById('cashNote').value;
       const walletNote = document.getElementById('walletNote').value;
       const generalNote = document.getElementById('generalHandoverNote').value;
@@ -313,13 +319,12 @@
           shiftName: shift.name,
           cashFound: cash,
           walletFound: wallet,
-          cashNote: cashNote,       // ملاحظة الدرج
-          walletNote: walletNote,   // ملاحظة المحفظة
-          generalNote: generalNote, // الملاحظات العامة (البنزين)
+          cashNote: cashNote,
+          walletNote: walletNote,
+          generalNote: generalNote,
           timestamp: Date.now()
       });
 
-      // تفريغ الحقول
       document.getElementById('cashFound').value = '';
       document.getElementById('walletFound').value = '';
       document.getElementById('cashNote').value = '';
@@ -329,7 +334,7 @@
       alert("تم تسجيل تسليم العهدة بنجاح ✅");
   }
 
-  // عرض سجل العهدة (بالشكل الجديد الكامل)
+  // عرض سجل العهدة
   onValue(ref(db, 'handovers'), (snapshot) => {
       const list = document.getElementById('handoverHistoryList');
       list.innerHTML = '';
@@ -345,12 +350,12 @@
               const cashClass = cashDiff > 0 ? 'diff-pos' : (cashDiff < 0 ? 'diff-neg' : 'diff-zero');
               const walletClass = walletDiff > 0 ? 'diff-pos' : (walletDiff < 0 ? 'diff-neg' : 'diff-zero');
 
-              // عرض البيانات مع الملاحظات الفرعية
+              // استخدام note-text عشان السطور تظهر
               const cashDisplay = `<strong>${rec.cashFound}</strong> <span class="${cashClass}">(${cashDiff>0?'+':''}${cashDiff})</span>` + 
-                                  (rec.cashNote ? `<br><small class="text-danger" style="font-size:0.7em">• ${rec.cashNote}</small>` : '');
+                                  (rec.cashNote ? `<br><small class="note-text text-danger">• ${rec.cashNote}</small>` : '');
                                   
               const walletDisplay = `<strong>${rec.walletFound}</strong> <span class="${walletClass}">(${walletDiff>0?'+':''}${walletDiff})</span>` + 
-                                    (rec.walletNote ? `<br><small class="text-danger" style="font-size:0.7em">• ${rec.walletNote}</small>` : '');
+                                    (rec.walletNote ? `<br><small class="note-text text-danger">• ${rec.walletNote}</small>` : '');
 
               const html = `
                   <tr class="handover-row align-middle">
@@ -358,7 +363,7 @@
                       <td>${date}</td>
                       <td>${cashDisplay}</td>
                       <td>${walletDisplay}</td>
-                      <td class="text-start small text-muted">${rec.generalNote || '-'}</td>
+                      <td class="text-start small text-muted"><span class="note-text">${rec.generalNote || '-'}</span></td>
                   </tr>`;
               list.innerHTML += html;
           });
@@ -367,7 +372,7 @@
       }
   });
 
-  // --- الأوردرات (زي ما هي) ---
+  // --- الأوردرات ---
   window.saveOrder = function() {
       const id = document.getElementById('editOrderId').value;
       const orderType = document.getElementById('orderType').value;
