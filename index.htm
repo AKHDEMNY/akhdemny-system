@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سيستم اخدمني V8</title>
+    <title>سيستم اخدمني V9</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,16 +15,17 @@
         /* الخط والألوان الأساسية */
         body { background-color: #f4f6f8; font-family: 'Cairo', sans-serif; }
 
-        /* ألوان البراند الجديدة */
-        .bg-brand-orange { background-color: #ff6f00 !important; } /* الهيدر أورنج */
-        .btn-brand-blue { background-color: #0d47a1; color: white; border: none; } /* الأزرار أزرق */
+        /* ألوان البراند */
+        .bg-brand-orange { background-color: #ff6f00 !important; }
+        .btn-brand-blue { background-color: #0d47a1; color: white; border: none; }
         .btn-brand-blue:hover { background-color: #002171; color: white; }
-        
         .text-brand-orange { color: #ff6f00; }
         .text-brand-blue { color: #0d47a1; }
 
-        /* اللوجو */
-        .navbar-brand img { height: 45px; margin-left: 10px; border-radius: 8px; border: 2px solid white; }
+        /* تنسيق اللوجو لإزالة الخلفية السوداء */
+        .blend-logo { mix-blend-mode: screen; }
+        .navbar-brand img { height: 50px; margin-left: 10px; }
+        .login-box img { width: 100px; margin-bottom: 20px; }
 
         /* شاشة تسجيل الدخول */
         #loginOverlay {
@@ -34,7 +35,7 @@
         }
         .login-box { background: white; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
-        /* كروت الأوردرات */
+        /* كروت الأوردرات (تصميم موحد) */
         .order-card { 
             background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 6px solid #ccc; transition: all 0.2s; 
@@ -63,7 +64,7 @@
 
 <div id="loginOverlay">
     <div class="login-box">
-        <img src="logo.jpg" alt="Logo" style="width: 80px; margin-bottom: 20px; border-radius: 50%;">
+        <img src="https://i.ibb.co/sJRX04Z/92f0277e-3789-4969-9637-94d821d03bb2.jpg" alt="Logo" class="blend-logo">
         <h4 class="mb-4 text-brand-blue fw-bold">تسجيل الدخول</h4>
         <input type="text" id="loginUser" class="form-control mb-3" placeholder="اسم المستخدم">
         <input type="password" id="loginPass" class="form-control mb-3" placeholder="كلمة المرور">
@@ -74,7 +75,7 @@
 <nav class="navbar navbar-dark bg-brand-orange mb-4 shadow-sm">
     <div class="container">
         <span class="navbar-brand mb-0 h1 fw-bold d-flex align-items-center">
-            <img src="logo.jpg" alt="Logo" onerror="this.style.display='none'"> 
+            <img src="https://i.ibb.co/sJRX04Z/92f0277e-3789-4969-9637-94d821d03bb2.jpg" alt="Logo" class="blend-logo" onerror="this.style.display='none'"> 
             <span>اخدمني - <span id="currentShiftDisplay" class="text-white small" style="opacity: 0.8;">...</span></span>
         </span>
         <div>
@@ -247,7 +248,6 @@
           alert('بيانات الدخول غير صحيحة ❌');
       }
   }
-  // Check session on load
   if(sessionStorage.getItem('isLoggedIn') === 'true') {
       document.getElementById('loginOverlay').style.display = 'none';
   }
@@ -441,19 +441,21 @@
           const driverObj = driversList.find(d => d.name === order.driver);
           const driverPhone = driverObj ? fixEgPhone(driverObj.phone) : '';
           
+          // هنا التعديل: توحيد الشكل وإضافة البادج
           let typeLabel = "";
           if(order.type === 'store') typeLabel = ' <span class="badge bg-warning text-dark">محل</span>';
           else if(order.type === 'online') typeLabel = ' <span class="badge bg-info text-dark">أونلاين</span>';
 
-          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
+          const msg = `*أوردر جديد يا ${order.driver}* 🚀%0a🏪 *من:* ${order.storeName}${typeLabel.replace(/<[^>]*>?/gm, '')}%0a🧾 *الأوردر:* ${order.details}%0a💵 *التوصيل:* ${order.price || '-'} ج%0a📍 *العنوان:* ${order.address || '-'}%0a📞 *العميل:* ${order.clientPhone || '-'}%0a✅ *التأكيد:* https://akhdemny.github.io/akhdemny-system/driver.html?id=${id}`;
           
           let whatsappBtn = '';
           if(order.driver && order.status === 'new') {
               whatsappBtn = `<a href="whatsapp://send?phone=${driverPhone}&text=${msg}" class="btn btn-success btn-sm"><i class="fab fa-whatsapp"></i> إرسال</a>`;
-          } else if (!order.driver) {
+          } else if (!order.driver && order.type === 'normal') {
               statusText += ` <button class="btn btn-outline-warning btn-sm ms-2" onclick="editOrder('${id}')">تعيين</button>`;
           }
 
+          // التصميم الموحد لكل الكروت
           const html = `
               <div class="order-card ${statusClass}">
                   <div class="row align-items-center">
